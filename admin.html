@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PropertyMatch Admin</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .admin-wrap {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+
+    .stat,
+    .admin-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .stat b {
+      font-size: 30px;
+      display: block;
+      margin-top: 5px;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .admin-table th,
+    .admin-table td {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .success {
+      color: #067647;
+      font-weight: bold;
+    }
+
+    .danger {
+      color: #b42318;
+      font-weight: bold;
+    }
+
+    .login {
+      max-width: 420px;
+      margin: 80px auto;
+    }
+
+    .admin-card {
+      overflow: auto;
+    }
+
+    @media (max-width: 700px) {
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-table {
+        min-width: 800px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<nav>
+  <b>PropertyMatch</b>
+  <span>Admin</span>
+</nav>
+
+<main class="admin-wrap">
+
+  <!-- LOGIN -->
+  <section id="login" class="panel login">
+
+    <h2>Admin Login</h2>
+
+    <p>Enter your private admin key.</p>
+
+    <input
+      id="adminKey"
+      type="password"
+      placeholder="Admin key"
+      autocomplete="current-password"
+    >
+
+    <button onclick="login()">Open Dashboard</button>
+
+    <div id="loginMsg"></div>
+
+  </section>
+
+
+  <!-- DASHBOARD -->
+  <section id="dashboard" style="display:none">
+
+    <div style="
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    ">
+
+      <div>
+        <h1>Admin Dashboard</h1>
+        <p>Manage requests and verify properties.</p>
+      </div>
+
+      <button class="ghost" onclick="logout()">
+        Log out
+      </button>
+
+    </div>
+
+
+    <!-- STATISTICS -->
+    <div class="admin-grid">
+
+      <div class="stat">
+        <span>Requests</span>
+        <b id="requestCount">0</b>
+      </div>
+
+      <div class="stat">
+        <span>Properties</span>
+        <b id="propertyCount">0</b>
+      </div>
+
+      <div class="stat">
+        <span>Verified</span>
+        <b id="verifiedCount">0</b>
+      </div>
+
+    </div>
+
+
+    <!-- REQUESTS -->
+    <div class="admin-card">
+
+      <h2>Requests</h2>
+
+      <div id="requestsBox">
+        Loading...
+      </div>
+
+    </div>
+
+
+    <!-- PROPERTIES -->
+    <div class="admin-card">
+
+      <h2>Properties</h2>
+
+      <div id="propertiesBox">
+        Loading...
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<script src="admin.js"></script>
+
+</body>
+</html>
