@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const Database = require("better-sqlite3");
+const { Pool } = require("pg");
 const crypto = require("crypto");
 
 const app = express();
@@ -11,44 +11,55 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const db = new Database("propertymatch.db");
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL is missing.");
+}
 
-db.pragma("journal_mode = WAL");
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL
+    ? { rejectUnauthorized: false }
+    : false
+});
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS requests (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    request_id TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    phone TEXT NOT NULL,
-    email TEXT,
-    purpose TEXT NOT NULL,
-    property_type TEXT NOT NULL,
-    areas TEXT,
-    budget_max REAL,
-    bedrooms INTEGER,
-    size_min REAL,
-    requirements TEXT,
-    status TEXT DEFAULT 'received',
-    created_at TEXT NOT NULL
-  );
+async function initDatabase() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS requests (
+      id SERIAL PRIMARY KEY,
+      request_id TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT,
+      purpose TEXT NOT NULL,
+      property_type TEXT NOT NULL,
+      areas TEXT,
+      budget_max REAL,
+      bedrooms INTEGER,
+      size_min REAL,
+      requirements TEXT,
+      status TEXT DEFAULT 'received',
+      created_at TEXT NOT NULL
+    );
 
-  CREATE TABLE IF NOT EXISTS properties (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    owner_name TEXT NOT NULL,
-    phone TEXT NOT NULL,
-    email TEXT,
-    property_type TEXT NOT NULL,
-    area TEXT,
-    price REAL,
-    bedrooms INTEGER,
-    size REAL,
-    features TEXT,
-    description TEXT,
-    verified INTEGER DEFAULT 0,
-    created_at TEXT NOT NULL
-  );
-`);
+    CREATE TABLE IF NOT EXISTS properties (
+      id SERIAL PRIMARY KEY,
+      owner_name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT,
+      property_type TEXT NOT NULL,
+      area TEXT,
+      price REAL,
+      bedrooms INTEGER,
+      size REAL,
+      features TEXT,
+      description TEXT,
+      verified INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
+  `);
+
+  console.log("PostgreSQL database ready.");
+}
 
 function clean(value) {
   if (value === undefined || value === null) return "";
@@ -78,13 +89,15 @@ function makeRequestId() {
   return `PM-${date}-${random}`;
 }
 
-function findMatches(request) {
-  const properties = db.prepare(`
+async function findMatches(request) {
+  const result = await pool.query(`
     SELECT *
     FROM properties
     WHERE verified = 1
     ORDER BY created_at DESC
-  `).all();
+  `);
+
+  const properties = result.rows;
 
   const requestedAreas = clean(request.areas)
     .toLowerCase()
@@ -159,17 +172,32 @@ function findMatches(request) {
 
 /* Health check */
 
-app.get("/api/health", (req, res) => {
-  res.json({
-    success: true,
-    service: "PropertyMatch Abu Dhabi",
-    status: "online"
-  });
+app.get("/api/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+
+    res.json({
+      success: true,
+      service: "PropertyMatch Abu Dhabi",
+      status: "online",
+      database: "connected"
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      service: "PropertyMatch Abu Dhabi",
+      status: "online",
+      database: "error"
+    });
+  }
 });
 
 /* Create property request */
 
-app.post("/api/requests", (req, res) => {
+app.post("/api/requests", async (req, res) => {
   try {
     const body = req.body;
 
@@ -183,7 +211,7 @@ app.post("/api/requests", (req, res) => {
     const requestId = makeRequestId();
     const createdAt = new Date().toISOString();
 
-    db.prepare(`
+    await pool.query(`
       INSERT INTO requests (
         request_id,
         name,
@@ -199,8 +227,10 @@ app.post("/api/requests", (req, res) => {
         status,
         created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+      VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13
+      )
+    `, [
       requestId,
       clean(body.name),
       clean(body.phone),
@@ -214,7 +244,7 @@ app.post("/api/requests", (req, res) => {
       clean(body.requirements),
       "received",
       createdAt
-    );
+    ]);
 
     res.status(201).json({
       success: true,
@@ -235,7 +265,7 @@ app.post("/api/requests", (req, res) => {
 
 /* Submit property */
 
-app.post("/api/properties", (req, res) => {
+app.post("/api/properties", async (req, res) => {
   try {
     const body = req.body;
 
@@ -246,7 +276,7 @@ app.post("/api/properties", (req, res) => {
       });
     }
 
-    const result = db.prepare(`
+    const result = await pool.query(`
       INSERT INTO properties (
         owner_name,
         phone,
@@ -261,8 +291,11 @@ app.post("/api/properties", (req, res) => {
         verified,
         created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+      VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
+      )
+      RETURNING id
+    `, [
       clean(body.owner_name),
       clean(body.phone),
       clean(body.email),
@@ -275,12 +308,12 @@ app.post("/api/properties", (req, res) => {
       clean(body.description),
       0,
       new Date().toISOString()
-    );
+    ]);
 
     res.status(201).json({
       success: true,
       message: "Property received successfully.",
-      property_id: result.lastInsertRowid,
+      property_id: result.rows[0].id,
       status: "pending verification"
     });
 
@@ -296,13 +329,15 @@ app.post("/api/properties", (req, res) => {
 
 /* Check request status */
 
-app.get("/api/requests/:requestId", (req, res) => {
+app.get("/api/requests/:requestId", async (req, res) => {
   try {
-    const request = db.prepare(`
+    const result = await pool.query(`
       SELECT *
       FROM requests
-      WHERE request_id = ?
-    `).get(req.params.requestId);
+      WHERE request_id = $1
+    `, [req.params.requestId]);
+
+    const request = result.rows[0];
 
     if (!request) {
       return res.status(404).json({
@@ -311,7 +346,7 @@ app.get("/api/requests/:requestId", (req, res) => {
       });
     }
 
-    const matches = findMatches(request);
+    const matches = await findMatches(request);
 
     res.json({
       success: true,
@@ -340,13 +375,15 @@ app.get("/api/requests/:requestId", (req, res) => {
 
 /* Get matches */
 
-app.get("/api/matches/:requestId", (req, res) => {
+app.get("/api/matches/:requestId", async (req, res) => {
   try {
-    const request = db.prepare(`
+    const result = await pool.query(`
       SELECT *
       FROM requests
-      WHERE request_id = ?
-    `).get(req.params.requestId);
+      WHERE request_id = $1
+    `, [req.params.requestId]);
+
+    const request = result.rows[0];
 
     if (!request) {
       return res.status(404).json({
@@ -355,10 +392,12 @@ app.get("/api/matches/:requestId", (req, res) => {
       });
     }
 
+    const matches = await findMatches(request);
+
     res.json({
       success: true,
       request_id: request.request_id,
-      matches: findMatches(request)
+      matches
     });
 
   } catch (error) {
@@ -388,55 +427,85 @@ function adminOnly(req, res, next) {
 
 /* Admin summary */
 
-app.get("/api/admin/summary", adminOnly, (req, res) => {
-  const requests = db.prepare(
-    "SELECT COUNT(*) AS count FROM requests"
-  ).get().count;
+app.get("/api/admin/summary", adminOnly, async (req, res) => {
+  try {
+    const requests = await pool.query(
+      "SELECT COUNT(*)::int AS count FROM requests"
+    );
 
-  const properties = db.prepare(
-    "SELECT COUNT(*) AS count FROM properties"
-  ).get().count;
+    const properties = await pool.query(
+      "SELECT COUNT(*)::int AS count FROM properties"
+    );
 
-  const verified = db.prepare(
-    "SELECT COUNT(*) AS count FROM properties WHERE verified = 1"
-  ).get().count;
+    const verified = await pool.query(
+      "SELECT COUNT(*)::int AS count FROM properties WHERE verified = 1"
+    );
 
-  res.json({
-    success: true,
-    requests,
-    properties,
-    verified_properties: verified
-  });
+    res.json({
+      success: true,
+      requests: requests.rows[0].count,
+      properties: properties.rows[0].count,
+      verified_properties: verified.rows[0].count
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: "Could not load summary."
+    });
+  }
 });
 
 /* Admin requests */
 
-app.get("/api/admin/requests", adminOnly, (req, res) => {
-  const requests = db.prepare(`
-    SELECT *
-    FROM requests
-    ORDER BY id DESC
-  `).all();
+app.get("/api/admin/requests", adminOnly, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT *
+      FROM requests
+      ORDER BY id DESC
+    `);
 
-  res.json({
-    success: true,
-    requests
-  });
+    res.json({
+      success: true,
+      requests: result.rows
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: "Could not load requests."
+    });
+  }
 });
 
 /* Admin properties */
 
-app.get("/api/admin/properties", adminOnly, (req, res) => {
-  const properties = db.prepare(`
-    SELECT *
-    FROM properties
-    ORDER BY id DESC
-  `).all();
+app.get("/api/admin/properties", adminOnly, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT *
+      FROM properties
+      ORDER BY id DESC
+    `);
 
-  res.json({
-    success: true,
-    properties
-  });
+    res.json({
+      success: true,
+      properties: result.rows
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: "Could not load properties."
+    });
+  }
 });
 
 /* Update request status */
@@ -444,47 +513,58 @@ app.get("/api/admin/properties", adminOnly, (req, res) => {
 app.post(
   "/api/admin/requests/:requestId/status",
   adminOnly,
-  (req, res) => {
+  async (req, res) => {
 
-    const allowed = [
-      "received",
-      "searching",
-      "match_found",
-      "contacted",
-      "deal_closed",
-      "closed"
-    ];
+    try {
+      const allowed = [
+        "received",
+        "searching",
+        "match_found",
+        "contacted",
+        "deal_closed",
+        "closed"
+      ];
 
-    const status = clean(req.body.status);
+      const status = clean(req.body.status);
 
-    if (!allowed.includes(status)) {
-      return res.status(400).json({
+      if (!allowed.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid status."
+        });
+      }
+
+      const result = await pool.query(`
+        UPDATE requests
+        SET status = $1
+        WHERE request_id = $2
+        RETURNING request_id
+      `, [
+        status,
+        req.params.requestId
+      ]);
+
+      if (!result.rowCount) {
+        return res.status(404).json({
+          success: false,
+          error: "Request not found."
+        });
+      }
+
+      res.json({
+        success: true,
+        request_id: req.params.requestId,
+        status
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
         success: false,
-        error: "Invalid status."
+        error: "Could not update request status."
       });
     }
-
-    const result = db.prepare(`
-      UPDATE requests
-      SET status = ?
-      WHERE request_id = ?
-    `).run(
-      status,
-      req.params.requestId
-    );
-
-    if (!result.changes) {
-      return res.status(404).json({
-        success: false,
-        error: "Request not found."
-      });
-    }
-
-    res.json({
-      success: true,
-      request_id: req.params.requestId,
-      status
-    });
   }
 );
 
@@ -493,33 +573,56 @@ app.post(
 app.post(
   "/api/admin/verify/:propertyId",
   adminOnly,
-  (req, res) => {
+  async (req, res) => {
 
-    const result = db.prepare(`
-      UPDATE properties
-      SET verified = 1
-      WHERE id = ?
-    `).run(req.params.propertyId);
+    try {
+      const result = await pool.query(`
+        UPDATE properties
+        SET verified = 1
+        WHERE id = $1
+        RETURNING id
+      `, [req.params.propertyId]);
 
-    if (!result.changes) {
-      return res.status(404).json({
+      if (!result.rowCount) {
+        return res.status(404).json({
+          success: false,
+          error: "Property not found."
+        });
+      }
+
+      res.json({
+        success: true,
+        property_id: req.params.propertyId,
+        verified: true
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
         success: false,
-        error: "Property not found."
+        error: "Could not verify property."
       });
     }
-
-    res.json({
-      success: true,
-      property_id: req.params.propertyId,
-      verified: true
-    });
   }
 );
 
 /* Start server */
 
-app.listen(PORT, () => {
-  console.log(
-    `PropertyMatch Abu Dhabi API running on port ${PORT}`
-  );
-});
+async function startServer() {
+  try {
+    await initDatabase();
+
+    app.listen(PORT, () => {
+      console.log(
+        `PropertyMatch Abu Dhabi API running on port ${PORT}`
+      );
+    });
+
+  } catch (error) {
+    console.error("Database startup failed:", error);
+    process.exit(1);
+  }
+}
+
+startServer();
