@@ -1,72 +1,199 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Backend URL
   const API_URL = "https://abu-dhabi-property-matching-4.onrender.com";
 
   const requestForm = document.getElementById("rf");
   const propertyForm = document.getElementById("pf");
 
+  const requestMsg = document.getElementById("requestMsg");
+  const propertyMsg = document.getElementById("propertyMsg");
+
+
   // ==============================
-  // SUBMIT PROPERTY REQUEST
+  // DISPLAY MATCHES
+  // ==============================
+
+  function renderMatches(matches) {
+
+    if (!matches || matches.length === 0) {
+      return `
+        <p>
+          No suitable verified properties found yet.
+          We will keep searching.
+        </p>
+      `;
+    }
+
+    return `
+      <h3>🏠 Possible Matches</h3>
+
+      ${matches.map(property => `
+        <div class="match-card">
+
+          <strong>
+            ${property.property_type || "Property"}
+          </strong>
+
+          <p>📍 ${property.area || "Abu Dhabi"}</p>
+
+          <p>
+            💰 ${
+              property.price != null
+                ? Number(property.price).toLocaleString() + " AED"
+                : "Price on request"
+            }
+          </p>
+
+          <p>
+            🛏 ${property.bedrooms ?? "—"} bedrooms
+          </p>
+
+          <p>
+            📐 ${property.size ?? "—"} sq ft
+          </p>
+
+          <p>
+            <strong>
+              Match score: ${property.score ?? 0}%
+            </strong>
+          </p>
+
+        </div>
+      `).join("")}
+    `;
+  }
+
+
+  // ==============================
+  // FIND PROPERTY MATCHES
   // ==============================
 
   requestForm?.addEventListener("submit", async (e) => {
+
     e.preventDefault();
 
-    const data = Object.fromEntries(new FormData(requestForm));
+    const button =
+      requestForm.querySelector('button[type="submit"]');
+
+    const data =
+      Object.fromEntries(new FormData(requestForm));
+
+    button.disabled = true;
+    button.textContent = "Finding matches...";
+
+    requestMsg.innerHTML = `
+      <p>
+        🔎 Finding the best property matches for you...
+      </p>
+    `;
+
 
     try {
-      const response = await fetch(`${API_URL}/api/requests`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-      });
+
+      // STEP 1 — Create request
+
+      const response = await fetch(
+        `${API_URL}/api/requests`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify(data)
+        }
+      );
+
 
       const result = await response.json();
 
+
       if (!response.ok) {
-        throw new Error(result.error || "Request failed");
+        throw new Error(
+          result.error || "Request failed"
+        );
       }
 
-      document.getElementById("requestMsg").innerHTML = `
-        <p class="success">
-          ✅ Request received successfully!
-        </p>
 
-        <p>
-          <strong>Your Request ID:</strong>
-          <span style="font-size:1.1em">
+      // STEP 2 — Find matching properties
+
+      const matchResponse = await fetch(
+        `${API_URL}/api/matches/${encodeURIComponent(
+          result.request_id
+        )}`
+      );
+
+
+      const matchResult =
+        await matchResponse.json();
+
+
+      if (!matchResponse.ok) {
+        throw new Error(
+          matchResult.error ||
+          "Could not find matches"
+        );
+      }
+
+
+      // STEP 3 — Display results
+
+      requestMsg.innerHTML = `
+
+        <div class="status-card">
+
+          <p class="success">
+            ✅ Request received successfully!
+          </p>
+
+          <p>
+            <strong>Your Request ID:</strong>
             ${result.request_id}
-          </span>
-        </p>
+          </p>
 
-        <p>
-          Save this ID. You will use it to check your request status.
-        </p>
+          <p>
+            <strong>Status:</strong>
+            ${
+              matchResult.matches &&
+              matchResult.matches.length > 0
+                ? "Match found"
+                : "Searching"
+            }
+          </p>
 
-        <p>
-          <strong>Status:</strong> Received
-        </p>
+          ${renderMatches(matchResult.matches)}
+
+        </div>
+
       `;
+
 
       requestForm.reset();
 
+
     } catch (error) {
 
-      document.getElementById("requestMsg").innerHTML = `
+      requestMsg.innerHTML = `
+
         <p style="color:red">
-          ❌ We could not submit your request yet.
+          ❌ ${error.message ||
+          "We could not submit your request yet."}
         </p>
 
-        <p>
-          Please try again shortly.
-        </p>
       `;
 
       console.error(error);
+
+    } finally {
+
+      button.disabled = false;
+
+      button.textContent =
+        "🔎 Find Matches";
+
     }
+
   });
 
 
@@ -75,51 +202,90 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==============================
 
   propertyForm?.addEventListener("submit", async (e) => {
+
     e.preventDefault();
 
-    const data = Object.fromEntries(new FormData(propertyForm));
+    const button =
+      propertyForm.querySelector(
+        'button[type="submit"]'
+      );
+
+    const data =
+      Object.fromEntries(
+        new FormData(propertyForm)
+      );
+
+    button.disabled = true;
+    button.textContent = "Submitting...";
+
 
     try {
-      const response = await fetch(`${API_URL}/api/properties`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-      });
 
-      const result = await response.json();
+      const response = await fetch(
+        `${API_URL}/api/properties`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify(data)
+        }
+      );
+
+
+      const result =
+        await response.json();
+
 
       if (!response.ok) {
-        throw new Error(result.error || "Property submission failed");
+        throw new Error(
+          result.error ||
+          "Property submission failed"
+        );
       }
 
-      document.getElementById("propertyMsg").innerHTML = `
+
+      propertyMsg.innerHTML = `
+
         <p class="success">
           ✅ Property received successfully!
         </p>
 
         <p>
-          Thank you. Your property is now pending verification.
+          Thank you. Your property is now
+          pending verification.
         </p>
+
       `;
+
 
       propertyForm.reset();
 
+
     } catch (error) {
 
-      document.getElementById("propertyMsg").innerHTML = `
+      propertyMsg.innerHTML = `
+
         <p style="color:red">
-          ❌ We could not submit the property yet.
+          ❌ ${error.message ||
+          "We could not submit the property yet."}
         </p>
 
-        <p>
-          Please try again shortly.
-        </p>
       `;
 
       console.error(error);
+
+    } finally {
+
+      button.disabled = false;
+
+      button.textContent =
+        "Submit Property";
+
     }
+
   });
 
 
@@ -129,21 +295,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.checkRequestStatus = async function () {
 
-    const input = document.getElementById("requestStatusId");
-    const resultBox = document.getElementById("statusResult");
+    const input =
+      document.getElementById(
+        "requestStatusId"
+      );
+
+    const resultBox =
+      document.getElementById(
+        "statusResult"
+      );
+
 
     if (!input || !resultBox) return;
 
-    const requestId = input.value.trim();
+
+    const requestId =
+      input.value.trim();
+
 
     if (!requestId) {
+
       resultBox.innerHTML = `
         <p style="color:red">
           Please enter your Request ID.
         </p>
       `;
+
       return;
     }
+
 
     resultBox.innerHTML = `
       <p>
@@ -151,82 +331,54 @@ document.addEventListener("DOMContentLoaded", () => {
       </p>
     `;
 
+
     try {
 
       const response = await fetch(
-        `${API_URL}/api/requests/${encodeURIComponent(requestId)}`
+        `${API_URL}/api/requests/${encodeURIComponent(
+          requestId
+        )}`
       );
 
-      const result = await response.json();
+
+      const result =
+        await response.json();
+
 
       if (!response.ok) {
-        throw new Error(result.error || "Request not found");
+
+        throw new Error(
+          result.error ||
+          "Request not found"
+        );
+
       }
+
 
       const statusNames = {
+
         received: "Received",
-        searching: "Searching for matches",
-        match_found: "Match found",
-        contacted: "You have been contacted",
-        deal_closed: "Deal closed",
-        closed: "Closed"
+
+        searching:
+          "Searching for matches",
+
+        match_found:
+          "Match found",
+
+        contacted:
+          "You have been contacted",
+
+        deal_closed:
+          "Deal closed",
+
+        closed:
+          "Closed"
+
       };
 
-      let matchesHTML = "";
-
-      if (result.matches && result.matches.length > 0) {
-
-        matchesHTML = `
-          <h3>Possible Matches</h3>
-
-          ${result.matches.map(property => `
-            <div class="match-card">
-
-              <strong>
-                ${property.property_type || "Property"}
-              </strong>
-
-              <p>
-                📍 ${property.area || "Abu Dhabi"}
-              </p>
-
-              <p>
-                💰 ${
-                  property.price
-                    ? Number(property.price).toLocaleString() + " AED"
-                    : "Price on request"
-                }
-              </p>
-
-              <p>
-                🛏 ${property.bedrooms || "—"} bedrooms
-              </p>
-
-              <p>
-                📐 ${property.size || "—"} sq ft
-              </p>
-
-              <p>
-                <strong>
-                  Match score: ${property.score || 0}%
-                </strong>
-              </p>
-
-            </div>
-          `).join("")}
-        `;
-
-      } else {
-
-        matchesHTML = `
-          <p>
-            We haven't found a suitable verified property yet.
-            We will keep searching.
-          </p>
-        `;
-      }
 
       resultBox.innerHTML = `
+
         <div class="status-card">
 
           <h3>
@@ -241,30 +393,42 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>
             <strong>Status:</strong>
             ${
-              statusNames[result.request.status]
-              || result.request.status
+              statusNames[
+                result.request.status
+              ] ||
+              result.request.status
             }
           </p>
 
-          ${matchesHTML}
+          ${renderMatches(
+            result.matches
+          )}
 
         </div>
+
       `;
+
 
     } catch (error) {
 
       resultBox.innerHTML = `
+
         <p style="color:red">
-          ❌ Request not found.
+          ❌ ${error.message ||
+          "Request not found."}
         </p>
 
         <p>
-          Please check that your Request ID is correct.
+          Please check that your Request ID
+          is correct.
         </p>
+
       `;
 
       console.error(error);
+
     }
+
   };
 
 
@@ -274,9 +438,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.show = function (id) {
 
-    document.getElementById(id)?.scrollIntoView({
-      behavior: "smooth"
-    });
+    document
+      .getElementById(id)
+      ?.scrollIntoView({
+        behavior: "smooth"
+      });
 
   };
 
