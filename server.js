@@ -50,26 +50,38 @@ db.exec(`
   );
 `);
 
-function makeRequestId() {
-  const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const random = crypto.randomBytes(3).toString("hex").toUpperCase();
-  return `PM-${date}-${random}`;
-}
-
 function clean(value) {
   if (value === undefined || value === null) return "";
   return String(value).trim();
 }
 
 function numberOrNull(value) {
-  if (value === "" || value === undefined || value === null) return null;
+  if (value === "" || value === undefined || value === null) {
+    return null;
+  }
+
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }
 
+function makeRequestId() {
+  const date = new Date()
+    .toISOString()
+    .slice(0, 10)
+    .replace(/-/g, "");
+
+  const random = crypto
+    .randomBytes(3)
+    .toString("hex")
+    .toUpperCase();
+
+  return `PM-${date}-${random}`;
+}
+
 function findMatches(request) {
   const properties = db.prepare(`
-    SELECT * FROM properties
+    SELECT *
+    FROM properties
     WHERE verified = 1
     ORDER BY created_at DESC
   `).all();
@@ -97,7 +109,9 @@ function findMatches(request) {
 
       if (
         requestedAreas.length === 0 ||
-        requestedAreas.some(area => propertyArea.includes(area))
+        requestedAreas.some(area =>
+          propertyArea.includes(area)
+        )
       ) {
         score += 25;
         reasons.push("Area matches");
@@ -144,6 +158,7 @@ function findMatches(request) {
 }
 
 /* Health check */
+
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
@@ -153,6 +168,7 @@ app.get("/api/health", (req, res) => {
 });
 
 /* Create property request */
+
 app.post("/api/requests", (req, res) => {
   try {
     const body = req.body;
@@ -206,8 +222,10 @@ app.post("/api/requests", (req, res) => {
       request_id: requestId,
       status: "received"
     });
+
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       success: false,
       error: "Could not create request."
@@ -216,6 +234,7 @@ app.post("/api/requests", (req, res) => {
 });
 
 /* Submit property */
+
 app.post("/api/properties", (req, res) => {
   try {
     const body = req.body;
@@ -264,8 +283,10 @@ app.post("/api/properties", (req, res) => {
       property_id: result.lastInsertRowid,
       status: "pending verification"
     });
+
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       success: false,
       error: "Could not submit property."
@@ -274,6 +295,7 @@ app.post("/api/properties", (req, res) => {
 });
 
 /* Check request status */
+
 app.get("/api/requests/:requestId", (req, res) => {
   try {
     const request = db.prepare(`
@@ -293,6 +315,7 @@ app.get("/api/requests/:requestId", (req, res) => {
 
     res.json({
       success: true,
+
       request: {
         request_id: request.request_id,
         name: request.name,
@@ -301,10 +324,13 @@ app.get("/api/requests/:requestId", (req, res) => {
         status: request.status,
         created_at: request.created_at
       },
+
       matches
     });
+
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       success: false,
       error: "Could not retrieve request."
@@ -313,6 +339,7 @@ app.get("/api/requests/:requestId", (req, res) => {
 });
 
 /* Get matches */
+
 app.get("/api/matches/:requestId", (req, res) => {
   try {
     const request = db.prepare(`
@@ -333,8 +360,10 @@ app.get("/api/matches/:requestId", (req, res) => {
       request_id: request.request_id,
       matches: findMatches(request)
     });
+
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       success: false,
       error: "Could not find matches."
@@ -343,6 +372,7 @@ app.get("/api/matches/:requestId", (req, res) => {
 });
 
 /* Admin authentication */
+
 function adminOnly(req, res, next) {
   const key = req.headers["x-admin-key"];
 
@@ -357,6 +387,7 @@ function adminOnly(req, res, next) {
 }
 
 /* Admin summary */
+
 app.get("/api/admin/summary", adminOnly, (req, res) => {
   const requests = db.prepare(
     "SELECT COUNT(*) AS count FROM requests"
@@ -379,6 +410,7 @@ app.get("/api/admin/summary", adminOnly, (req, res) => {
 });
 
 /* Admin requests */
+
 app.get("/api/admin/requests", adminOnly, (req, res) => {
   const requests = db.prepare(`
     SELECT *
@@ -393,6 +425,7 @@ app.get("/api/admin/requests", adminOnly, (req, res) => {
 });
 
 /* Admin properties */
+
 app.get("/api/admin/properties", adminOnly, (req, res) => {
   const properties = db.prepare(`
     SELECT *
@@ -407,48 +440,86 @@ app.get("/api/admin/properties", adminOnly, (req, res) => {
 });
 
 /* Update request status */
-app.post("/api/admin/requests/:requestId/status", adminOnly, (req, res) => {
-  const allowed = [
-    "received",
-    "searching",
-    "match_found",
-    "contacted",
-    "deal_closed",
-    "closed"
-  ];
 
-  const status = clean(req.body.status);
+app.post(
+  "/api/admin/requests/:requestId/status",
+  adminOnly,
+  (req, res) => {
 
-  if (!allowed.includes(status)) {
-    return res.status(400).json({
-      success: false,
-      error: "Invalid status."
+    const allowed = [
+      "received",
+      "searching",
+      "match_found",
+      "contacted",
+      "deal_closed",
+      "closed"
+    ];
+
+    const status = clean(req.body.status);
+
+    if (!allowed.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid status."
+      });
+    }
+
+    const result = db.prepare(`
+      UPDATE requests
+      SET status = ?
+      WHERE request_id = ?
+    `).run(
+      status,
+      req.params.requestId
+    );
+
+    if (!result.changes) {
+      return res.status(404).json({
+        success: false,
+        error: "Request not found."
+      });
+    }
+
+    res.json({
+      success: true,
+      request_id: req.params.requestId,
+      status
     });
   }
-
-  const result = db.prepare(`
-    UPDATE requests
-    SET status = ?
-    WHERE request_id = ?
-  `).run(status, req.params.requestId);
-
-  if (!result.changes) {
-    return res.status(404).json({
-      success: false,
-      error: "Request not found."
-    });
-  }
-
-  res.json({
-    success: true,
-    request_id: req.params.requestId,
-    status
-  });
-});
+);
 
 /* Verify property */
-app.post("/api/admin/verify/:propertyId", adminOnly, (req, res) => {
-  const result = db.prepare(`
-    UPDATE properties
-    SET verified = 1
-    WHERE id = ?
+
+app.post(
+  "/api/admin/verify/:propertyId",
+  adminOnly,
+  (req, res) => {
+
+    const result = db.prepare(`
+      UPDATE properties
+      SET verified = 1
+      WHERE id = ?
+    `).run(req.params.propertyId);
+
+    if (!result.changes) {
+      return res.status(404).json({
+        success: false,
+        error: "Property not found."
+      });
+    }
+
+    res.json({
+      success: true,
+      property_id: req.params.propertyId,
+      verified: true
+    });
+  }
+);
+
+/* Start server */
+
+app.listen(PORT, () => {
+  console.log(
+    `PropertyMatch Abu Dhabi API running on port ${PORT}`
+  );
+});
