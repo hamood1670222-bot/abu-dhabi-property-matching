@@ -1,6 +1,7 @@
 const API_URL = "https://abu-dhabi-property-matching-4.onrender.com";
 
 let ADMIN_KEY = "";
+let requestsById = {};
 
 function login() {
   const key = document.getElementById("adminKey").value.trim();
@@ -69,6 +70,12 @@ async function loadRequests() {
     const data = await api("/api/admin/requests");
     const requests = data.requests || [];
 
+    requestsById = {};
+
+    requests.forEach(r => {
+      requestsById[r.request_id] = r;
+    });
+
     if (!requests.length) {
       box.innerHTML = "<p>No requests yet.</p>";
       return;
@@ -132,6 +139,7 @@ async function loadRequests() {
   } catch (error) {
     box.innerHTML =
       `<p class="danger">Could not load requests.</p>`;
+
     console.error(error);
   }
 }
@@ -141,7 +149,13 @@ async function showMatches(requestId) {
 
   if (!box) return;
 
-  box.innerHTML = `<p>Finding matches for <b>${escapeHtml(requestId)}</b>...</p>`;
+  const request = requestsById[requestId];
+
+  box.innerHTML = `
+    <div class="admin-card">
+      <p>Finding matches for <b>${escapeHtml(requestId)}</b>...</p>
+    </div>
+  `;
 
   try {
     const data = await api(
@@ -164,23 +178,97 @@ async function showMatches(requestId) {
     box.innerHTML = `
       <div class="admin-card">
 
-        <h3>Matches for ${escapeHtml(requestId)}</h3>
+        <h2>Match Connection</h2>
 
-        ${matches.map(p => `
+        <div style="
+          border:2px solid #ddd;
+          border-radius:12px;
+          padding:15px;
+          margin:15px 0;
+        ">
+
+          <h3>👤 Requester</h3>
+
+          <p>
+            <b>Name:</b>
+            ${escapeHtml(request?.name)}
+          </p>
+
+          <p>
+            <b>Phone:</b>
+            ${escapeHtml(request?.phone)}
+          </p>
+
+          ${
+            request?.phone
+              ? `<p>
+                   <a href="tel:${encodeURIComponent(request.phone)}">
+                     <button>📞 Call Requester</button>
+                   </a>
+                 </p>`
+              : ""
+          }
+
+          <p>
+            <b>Email:</b>
+            ${escapeHtml(request?.email)}
+          </p>
+
+          ${
+            request?.email
+              ? `<p>
+                   <a href="mailto:${encodeURIComponent(request.email)}">
+                     <button>✉️ Email Requester</button>
+                   </a>
+                 </p>`
+              : ""
+          }
+
+          <p>
+            <b>Purpose:</b>
+            ${escapeHtml(request?.purpose)}
+          </p>
+
+          <p>
+            <b>Property Type:</b>
+            ${escapeHtml(request?.property_type)}
+          </p>
+
+          <p>
+            <b>Areas:</b>
+            ${escapeHtml(request?.areas)}
+          </p>
+
+          <p>
+            <b>Maximum Budget:</b>
+            AED ${formatNumber(request?.budget_max)}
+          </p>
+
+          <p>
+            <b>Bedrooms:</b>
+            ${escapeHtml(request?.bedrooms)}
+          </p>
+
+        </div>
+
+        <h3>🏠 Matching Properties</h3>
+
+        ${matches.map((p, index) => `
           <div style="
-            border:1px solid #ddd;
+            border:2px solid #ddd;
             border-radius:12px;
             padding:15px;
-            margin:10px 0;
+            margin:15px 0;
           ">
 
             <h3>
+              Match ${index + 1}:
               ${escapeHtml(p.property_type)}
               — ${escapeHtml(p.area)}
             </h3>
 
             <p>
-              <b>Match score:</b>
+              <b>Match Score:</b>
               ${escapeHtml(p.score)}%
             </p>
 
@@ -199,8 +287,12 @@ async function showMatches(requestId) {
               ${escapeHtml(p.size)}
             </p>
 
+            <hr>
+
+            <h3>👤 Property Owner</h3>
+
             <p>
-              <b>Owner:</b>
+              <b>Name:</b>
               ${escapeHtml(p.owner_name)}
             </p>
 
@@ -209,15 +301,42 @@ async function showMatches(requestId) {
               ${escapeHtml(p.phone)}
             </p>
 
+            ${
+              p.phone
+                ? `<p>
+                     <a href="tel:${encodeURIComponent(p.phone)}">
+                       <button>📞 Call Owner</button>
+                     </a>
+                   </p>`
+                : ""
+            }
+
             <p>
               <b>Email:</b>
               ${escapeHtml(p.email)}
             </p>
 
+            ${
+              p.email
+                ? `<p>
+                     <a href="mailto:${encodeURIComponent(p.email)}">
+                       <button>✉️ Email Owner</button>
+                     </a>
+                   </p>`
+                : ""
+            }
+
+            <hr>
+
             <p>
               <b>Why it matches:</b>
               ${escapeHtml((p.reasons || []).join(", "))}
             </p>
+
+            <button
+              onclick="changeStatus('${escapeJs(requestId)}','contacted')">
+              Mark Contacted
+            </button>
 
           </div>
         `).join("")}
@@ -228,6 +347,7 @@ async function showMatches(requestId) {
   } catch (error) {
     box.innerHTML =
       `<p class="danger">Could not find matches.</p>`;
+
     console.error(error);
   }
 }
@@ -305,6 +425,7 @@ async function loadProperties() {
   } catch (error) {
     box.innerHTML =
       `<p class="danger">Could not load properties.</p>`;
+
     console.error(error);
   }
 }
