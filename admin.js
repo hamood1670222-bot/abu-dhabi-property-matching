@@ -12,7 +12,6 @@ function login() {
   }
 
   ADMIN_KEY = key;
-
   loadDashboard();
 }
 
@@ -51,7 +50,7 @@ async function loadDashboard() {
       summary.properties ?? 0;
 
     document.getElementById("verifiedCount").textContent =
-      summary.verified ?? 0;
+      summary.verified_properties ?? 0;
 
     await loadRequests();
     await loadProperties();
@@ -68,10 +67,7 @@ async function loadRequests() {
 
   try {
     const data = await api("/api/admin/requests");
-
-    const requests = Array.isArray(data)
-      ? data
-      : data.requests || [];
+    const requests = data.requests || [];
 
     if (!requests.length) {
       box.innerHTML = "<p>No requests yet.</p>";
@@ -91,14 +87,14 @@ async function loadRequests() {
             <th>Budget</th>
             <th>Bedrooms</th>
             <th>Status</th>
-            <th>Action</th>
+            <th>Actions</th>
           </tr>
         </thead>
 
         <tbody>
           ${requests.map(r => `
             <tr>
-              <td>${escapeHtml(r.request_id || r.id)}</td>
+              <td>${escapeHtml(r.request_id)}</td>
               <td>${escapeHtml(r.name)}</td>
               <td>${escapeHtml(r.phone)}</td>
               <td>${escapeHtml(r.purpose)}</td>
@@ -106,25 +102,31 @@ async function loadRequests() {
               <td>${escapeHtml(r.areas)}</td>
               <td>${escapeHtml(r.budget_max)}</td>
               <td>${escapeHtml(r.bedrooms)}</td>
-              <td>${escapeHtml(r.status || "new")}</td>
+              <td>${escapeHtml(r.status || "received")}</td>
 
               <td>
-                <button onclick="changeStatus(${r.id}, 'contacted')">
+                <button onclick="showMatches('${escapeJs(r.request_id)}')">
+                  Find Matches
+                </button>
+
+                <button onclick="changeStatus('${escapeJs(r.request_id)}','searching')">
+                  Searching
+                </button>
+
+                <button onclick="changeStatus('${escapeJs(r.request_id)}','contacted')">
                   Contacted
                 </button>
 
-                <button onclick="changeStatus(${r.id}, 'matched')">
-                  Matched
-                </button>
-
-                <button onclick="changeStatus(${r.id}, 'closed')">
-                  Closed
+                <button onclick="changeStatus('${escapeJs(r.request_id)}','deal_closed')">
+                  Deal Closed
                 </button>
               </td>
             </tr>
           `).join("")}
         </tbody>
       </table>
+
+      <div id="matchesBox" style="margin-top:20px"></div>
     `;
 
   } catch (error) {
@@ -134,15 +136,108 @@ async function loadRequests() {
   }
 }
 
+async function showMatches(requestId) {
+  const box = document.getElementById("matchesBox");
+
+  if (!box) return;
+
+  box.innerHTML = `<p>Finding matches for <b>${escapeHtml(requestId)}</b>...</p>`;
+
+  try {
+    const data = await api(
+      `/api/matches/${encodeURIComponent(requestId)}`
+    );
+
+    const matches = data.matches || [];
+
+    if (!matches.length) {
+      box.innerHTML = `
+        <div class="admin-card">
+          <h3>No matches found</h3>
+          <p>Only verified properties can match a request.</p>
+          <p>Verify a suitable property first.</p>
+        </div>
+      `;
+      return;
+    }
+
+    box.innerHTML = `
+      <div class="admin-card">
+
+        <h3>Matches for ${escapeHtml(requestId)}</h3>
+
+        ${matches.map(p => `
+          <div style="
+            border:1px solid #ddd;
+            border-radius:12px;
+            padding:15px;
+            margin:10px 0;
+          ">
+
+            <h3>
+              ${escapeHtml(p.property_type)}
+              — ${escapeHtml(p.area)}
+            </h3>
+
+            <p>
+              <b>Match score:</b>
+              ${escapeHtml(p.score)}%
+            </p>
+
+            <p>
+              <b>Price:</b>
+              AED ${formatNumber(p.price)}
+            </p>
+
+            <p>
+              <b>Bedrooms:</b>
+              ${escapeHtml(p.bedrooms)}
+            </p>
+
+            <p>
+              <b>Size:</b>
+              ${escapeHtml(p.size)}
+            </p>
+
+            <p>
+              <b>Owner:</b>
+              ${escapeHtml(p.owner_name)}
+            </p>
+
+            <p>
+              <b>Phone:</b>
+              ${escapeHtml(p.phone)}
+            </p>
+
+            <p>
+              <b>Email:</b>
+              ${escapeHtml(p.email)}
+            </p>
+
+            <p>
+              <b>Why it matches:</b>
+              ${escapeHtml((p.reasons || []).join(", "))}
+            </p>
+
+          </div>
+        `).join("")}
+
+      </div>
+    `;
+
+  } catch (error) {
+    box.innerHTML =
+      `<p class="danger">Could not find matches.</p>`;
+    console.error(error);
+  }
+}
+
 async function loadProperties() {
   const box = document.getElementById("propertiesBox");
 
   try {
     const data = await api("/api/admin/properties");
-
-    const properties = Array.isArray(data)
-      ? data
-      : data.properties || [];
+    const properties = data.properties || [];
 
     if (!properties.length) {
       box.innerHTML = "<p>No properties yet.</p>";
@@ -151,6 +246,7 @@ async function loadProperties() {
 
     box.innerHTML = `
       <table class="admin-table">
+
         <thead>
           <tr>
             <th>ID</th>
@@ -167,8 +263,10 @@ async function loadProperties() {
         </thead>
 
         <tbody>
+
           ${properties.map(p => `
             <tr>
+
               <td>${escapeHtml(p.id)}</td>
               <td>${escapeHtml(p.owner_name)}</td>
               <td>${escapeHtml(p.phone)}</td>
@@ -195,9 +293,12 @@ async function loadProperties() {
                        </button>`
                 }
               </td>
+
             </tr>
           `).join("")}
+
         </tbody>
+
       </table>
     `;
 
@@ -209,11 +310,13 @@ async function loadProperties() {
 }
 
 async function verifyProperty(id) {
+
   if (!confirm("Verify this property?")) {
     return;
   }
 
   try {
+
     await api(`/api/admin/verify/${id}`, {
       method: "POST"
     });
@@ -224,30 +327,41 @@ async function verifyProperty(id) {
     await refreshSummary();
 
   } catch (error) {
+
     alert("Could not verify property.");
     console.error(error);
+
   }
 }
 
-async function changeStatus(id, status) {
+async function changeStatus(requestId, status) {
+
   try {
-    await api(`/api/admin/requests/${id}/status`, {
-      method: "POST",
-      body: JSON.stringify({
-        status: status
-      })
-    });
+
+    await api(
+      `/api/admin/requests/${encodeURIComponent(requestId)}/status`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          status: status
+        })
+      }
+    );
 
     await loadRequests();
 
   } catch (error) {
+
     alert("Could not update request status.");
     console.error(error);
+
   }
 }
 
 async function refreshSummary() {
+
   try {
+
     const summary = await api("/api/admin/summary");
 
     document.getElementById("requestCount").textContent =
@@ -257,24 +371,51 @@ async function refreshSummary() {
       summary.properties ?? 0;
 
     document.getElementById("verifiedCount").textContent =
-      summary.verified ?? 0;
+      summary.verified_properties ?? 0;
 
   } catch (error) {
+
     console.error(error);
+
   }
 }
 
 function logout() {
+
   ADMIN_KEY = "";
 
   document.getElementById("dashboard").style.display = "none";
+
   document.getElementById("login").style.display = "block";
+
   document.getElementById("adminKey").value = "";
+
   document.getElementById("loginMsg").textContent = "";
 }
 
+function formatNumber(value) {
+
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return "";
+  }
+
+  const n = Number(value);
+
+  return Number.isFinite(n)
+    ? n.toLocaleString()
+    : String(value);
+}
+
 function escapeHtml(value) {
-  if (value === null || value === undefined) {
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
     return "";
   }
 
@@ -284,4 +425,13 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function escapeJs(value) {
+
+  return String(value || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'")
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r");
 }
