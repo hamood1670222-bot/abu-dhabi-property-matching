@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Temporary backend URL.
   // We will replace this with the Render URL after deployment.
-  const API_URL = "https://YOUR-RENDER-URL.onrender.com";
+  const API_URL = const API_URL = "https://abu-dhabi-property-matching-4.onrender.com";
 
   const requestForm = document.getElementById("rf");
   const propertyForm = document.getElementById("pf");
