@@ -1,128 +1,299 @@
 <!doctype html>
+<html lang="en">
 
-<html>
 <head>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PropertyMatch Abu Dhabi</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body><nav>
-  <b>PropertyMatch</b>
-  <span>Abu Dhabi</span>
-</nav><main><section class="hero">
-  <div>
-    <p class="eyebrow">ABU DHABI PROPERTY MATCHING</p>
-    <h1>Tell us what property you need. <i>We find the match.</i></h1>
-    <p>Submit your requirements once. We rank suitable properties instead of making you search through hundreds of listings.</p>
-    <div>
-      <button onclick="show('request')">Find My Property</button>
-      <button class="ghost" onclick="show('property')">Submit a Property</button>
-    </div>
-  </div>
-</section><section id="request" class="panel">
-  <h2>Find My Property</h2>  <form id="rf">
-    <div class="grid">  <input name="name" placeholder="Full name" required>
 
-  <input name="phone" placeholder="Phone / WhatsApp" required>
+<body>
 
-  <input name="email" placeholder="Email">
+  <nav>
+    <b>PropertyMatch</b>
+    <span>Abu Dhabi</span>
+  </nav>
 
-  <select name="purpose">
-    <option value="buy">Buy</option>
-    <option value="rent">Rent</option>
-    <option value="sell">Sell</option>
-  </select>
+  <main>
 
-  <select name="property_type">
-    <option>Apartment</option>
-    <option>Villa</option>
-    <option>Townhouse</option>
-    <option>Office</option>
-    <option>Retail</option>
-    <option>Land</option>
-  </select>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">ABU DHABI PROPERTY MATCHING</p>
 
-  <input name="areas" placeholder="Preferred area(s)">
+        <h1>
+          Tell us what property you need.
+          <i>We find the match.</i>
+        </h1>
 
-  <input name="budget_max" type="number" placeholder="Maximum budget (AED)">
+        <p>
+          Submit your requirements once. We rank suitable properties
+          instead of making you search through hundreds of listings.
+        </p>
 
-  <input name="bedrooms" type="number" placeholder="Bedrooms">
+        <div>
+          <button onclick="show('request')">
+            Find My Property
+          </button>
 
-  <input name="size_min" type="number" placeholder="Minimum size (sq ft)">
+          <button class="ghost" onclick="show('property')">
+            Submit a Property
+          </button>
+        </div>
+      </div>
+    </section>
 
-  <textarea name="requirements" placeholder="Important requirements (parking, balcony, furnished, etc.)"></textarea>
 
-</div>
+    <!-- ========================= -->
+    <!-- FIND MY PROPERTY -->
+    <!-- ========================= -->
 
-<button type="submit">Find Matches</button>
+    <section id="request" class="panel">
 
-  </form>  <div id="requestMsg"></div>
-</section><section id="status" class="panel">
-  <h2>Check My Request</h2>  <p>Enter your Request ID to see the latest status of your property search.</p><input
-id="requestStatusId"
-type="text"
-placeholder="Example: PM-20260903-ABC123"
+      <h2>Find My Property</h2>
 
-«»
+      <form id="rf">
 
-  <button type="button" onclick="checkRequestStatus()">
-    Check Status
-  </button>  <div id="statusResult"></div>
-</section><section id="property" class="panel">
-  <h2>Submit a Property</h2>  <form id="pf">
-    <div class="grid">  <input name="owner_name" placeholder="Owner / agent name" required>
+        <div class="grid">
 
-  <input name="phone" placeholder="Phone / WhatsApp" required>
+          <input
+            name="name"
+            placeholder="Full name"
+            required
+          >
 
-  <input name="email" placeholder="Email">
+          <input
+            name="phone"
+            placeholder="Phone / WhatsApp"
+            required
+          >
 
-  <select name="property_type">
-    <option>Apartment</option>
-    <option>Villa</option>
-    <option>Townhouse</option>
-    <option>Office</option>
-    <option>Retail</option>
-    <option>Land</option>
-  </select>
+          <input
+            name="email"
+            type="email"
+            placeholder="Email"
+          >
 
-  <input name="area" placeholder="Area" required>
+          <select name="purpose">
+            <option value="buy">Buy</option>
+            <option value="rent">Rent</option>
+            <option value="sell">Sell</option>
+          </select>
 
-  <input name="price" type="number" placeholder="Price (AED)" required>
+          <select name="property_type">
+            <option value="Apartment">Apartment</option>
+            <option value="Villa">Villa</option>
+            <option value="Townhouse">Townhouse</option>
+            <option value="Office">Office</option>
+            <option value="Retail">Retail</option>
+            <option value="Land">Land</option>
+          </select>
 
-  <input name="bedrooms" type="number" placeholder="Bedrooms">
+          <input
+            name="areas"
+            placeholder="Preferred area(s)"
+          >
 
-  <input name="size" type="number" placeholder="Size (sq ft)">
+          <input
+            name="budget_max"
+            type="number"
+            placeholder="Maximum budget (AED)"
+          >
 
-  <input name="features" placeholder="Features, comma separated">
+          <input
+            name="bedrooms"
+            type="number"
+            placeholder="Bedrooms"
+          >
 
-  <textarea name="description" placeholder="Property description"></textarea>
+          <input
+            name="size_min"
+            type="number"
+            placeholder="Minimum size (sq ft)"
+          >
 
-</div>
+          <textarea
+            name="requirements"
+            placeholder="Important requirements (parking, balcony, furnished, etc.)"
+          ></textarea>
 
-<button type="submit">Submit Property</button>
+        </div>
 
-  </form>  <div id="propertyMsg"></div>
-</section><section class="how">
-  <h2>How it works</h2>  <div class="cards"><article>
-  <b>01</b>
-  <h3>Tell us what you need</h3>
-  <p>Budget, location, property type and requirements.</p>
-</article>
+        <button type="submit">
+          🔎 Find Matches
+        </button>
 
-<article>
-  <b>02</b>
-  <h3>We match it</h3>
-  <p>Our matching engine ranks suitable available properties.</p>
-</article>
+      </form>
 
-<article>
-  <b>03</b>
-  <h3>Connect</h3>
-  <p>Choose a match and continue with the owner or agent.</p>
-</article>
+      <div id="requestMsg"></div>
 
-  </div>
-</section></main><footer>
-  PropertyMatch Abu Dhabi · MVP
-</footer><script src="app.js"></script></body>
+    </section>
+
+
+    <!-- ========================= -->
+    <!-- CHECK REQUEST -->
+    <!-- ========================= -->
+
+    <section id="status" class="panel">
+
+      <h2>Check My Request</h2>
+
+      <p>
+        Enter your Request ID to see the latest status
+        of your property search.
+      </p>
+
+      <input
+        id="requestStatusId"
+        type="text"
+        placeholder="Example: PM-20260903-ABC123"
+      >
+
+      <button
+        type="button"
+        onclick="checkRequestStatus()"
+      >
+        Check Status
+      </button>
+
+      <div id="statusResult"></div>
+
+    </section>
+
+
+    <!-- ========================= -->
+    <!-- SUBMIT PROPERTY -->
+    <!-- ========================= -->
+
+    <section id="property" class="panel">
+
+      <h2>Submit a Property</h2>
+
+      <form id="pf">
+
+        <div class="grid">
+
+          <input
+            name="owner_name"
+            placeholder="Owner / agent name"
+            required
+          >
+
+          <input
+            name="phone"
+            placeholder="Phone / WhatsApp"
+            required
+          >
+
+          <input
+            name="email"
+            type="email"
+            placeholder="Email"
+          >
+
+          <select name="property_type">
+            <option value="Apartment">Apartment</option>
+            <option value="Villa">Villa</option>
+            <option value="Townhouse">Townhouse</option>
+            <option value="Office">Office</option>
+            <option value="Retail">Retail</option>
+            <option value="Land">Land</option>
+          </select>
+
+          <input
+            name="area"
+            placeholder="Area"
+            required
+          >
+
+          <input
+            name="price"
+            type="number"
+            placeholder="Price (AED)"
+            required
+          >
+
+          <input
+            name="bedrooms"
+            type="number"
+            placeholder="Bedrooms"
+          >
+
+          <input
+            name="size"
+            type="number"
+            placeholder="Size (sq ft)"
+          >
+
+          <input
+            name="features"
+            placeholder="Features, comma separated"
+          >
+
+          <textarea
+            name="description"
+            placeholder="Property description"
+          ></textarea>
+
+        </div>
+
+        <button type="submit">
+          Submit Property
+        </button>
+
+      </form>
+
+      <div id="propertyMsg"></div>
+
+    </section>
+
+
+    <!-- ========================= -->
+    <!-- HOW IT WORKS -->
+    <!-- ========================= -->
+
+    <section class="how">
+
+      <h2>How it works</h2>
+
+      <div class="cards">
+
+        <article>
+          <b>01</b>
+          <h3>Tell us what you need</h3>
+          <p>
+            Budget, location, property type and requirements.
+          </p>
+        </article>
+
+        <article>
+          <b>02</b>
+          <h3>We match it</h3>
+          <p>
+            Our matching engine ranks suitable available properties.
+          </p>
+        </article>
+
+        <article>
+          <b>03</b>
+          <h3>Connect</h3>
+          <p>
+            Choose a match and continue with the owner or agent.
+          </p>
+        </article>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <footer>
+    PropertyMatch Abu Dhabi · MVP
+  </footer>
+
+
+  <script src="app.js"></script>
+
+</body>
 </html>
