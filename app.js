@@ -1,11 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Temporary backend URL.
-  // We will replace this with the Render URL after deployment.
-  const API_URL = const API_URL = "https://abu-dhabi-property-matching-4.onrender.com";
+  // Backend URL
+  const API_URL = "https://abu-dhabi-property-matching-4.onrender.com";
 
   const requestForm = document.getElementById("rf");
   const propertyForm = document.getElementById("pf");
+
+  // ==============================
+  // SUBMIT PROPERTY REQUEST
+  // ==============================
 
   requestForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -31,13 +34,18 @@ document.addEventListener("DOMContentLoaded", () => {
         <p class="success">
           ✅ Request received successfully!
         </p>
+
         <p>
           <strong>Your Request ID:</strong>
-          <span style="font-size:1.1em">${result.request_id}</span>
+          <span style="font-size:1.1em">
+            ${result.request_id}
+          </span>
         </p>
+
         <p>
           Save this ID. You will use it to check your request status.
         </p>
+
         <p>
           <strong>Status:</strong> Received
         </p>
@@ -51,13 +59,20 @@ document.addEventListener("DOMContentLoaded", () => {
         <p style="color:red">
           ❌ We could not submit your request yet.
         </p>
-        <p>Please try again shortly.</p>
+
+        <p>
+          Please try again shortly.
+        </p>
       `;
 
       console.error(error);
     }
   });
 
+
+  // ==============================
+  // SUBMIT PROPERTY
+  // ==============================
 
   propertyForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -83,6 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <p class="success">
           ✅ Property received successfully!
         </p>
+
         <p>
           Thank you. Your property is now pending verification.
         </p>
@@ -96,13 +112,20 @@ document.addEventListener("DOMContentLoaded", () => {
         <p style="color:red">
           ❌ We could not submit the property yet.
         </p>
-        <p>Please try again shortly.</p>
+
+        <p>
+          Please try again shortly.
+        </p>
       `;
 
       console.error(error);
     }
   });
 
+
+  // ==============================
+  // CHECK REQUEST STATUS
+  // ==============================
 
   window.checkRequestStatus = async function () {
 
@@ -123,7 +146,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     resultBox.innerHTML = `
-      <p>🔎 Checking your request...</p>
+      <p>
+        🔎 Checking your request...
+      </p>
     `;
 
     try {
@@ -153,14 +178,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
         matchesHTML = `
           <h3>Possible Matches</h3>
+
           ${result.matches.map(property => `
             <div class="match-card">
-              <strong>${property.property_type || "Property"}</strong>
-              <p>📍 ${property.area || "Abu Dhabi"}</p>
-              <p>💰 ${property.price ? property.price.toLocaleString() + " AED" : "Price on request"}</p>
-              <p>🛏 ${property.bedrooms || "—"} bedrooms</p>
-              <p>📐 ${property.size || "—"} sq ft</p>
-              <p><strong>Match score: ${property.score}%</strong></p>
+
+              <strong>
+                ${property.property_type || "Property"}
+              </strong>
+
+              <p>
+                📍 ${property.area || "Abu Dhabi"}
+              </p>
+
+              <p>
+                💰 ${
+                  property.price
+                    ? Number(property.price).toLocaleString() + " AED"
+                    : "Price on request"
+                }
+              </p>
+
+              <p>
+                🛏 ${property.bedrooms || "—"} bedrooms
+              </p>
+
+              <p>
+                📐 ${property.size || "—"} sq ft
+              </p>
+
+              <p>
+                <strong>
+                  Match score: ${property.score || 0}%
+                </strong>
+              </p>
+
             </div>
           `).join("")}
         `;
@@ -178,7 +229,9 @@ document.addEventListener("DOMContentLoaded", () => {
       resultBox.innerHTML = `
         <div class="status-card">
 
-          <h3>Request Status</h3>
+          <h3>
+            Request Status
+          </h3>
 
           <p>
             <strong>Request ID:</strong>
@@ -187,7 +240,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
           <p>
             <strong>Status:</strong>
-            ${statusNames[result.request.status] || result.request.status}
+            ${
+              statusNames[result.request.status]
+              || result.request.status
+            }
           </p>
 
           ${matchesHTML}
@@ -201,6 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <p style="color:red">
           ❌ Request not found.
         </p>
+
         <p>
           Please check that your Request ID is correct.
         </p>
@@ -211,10 +268,16 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
 
+  // ==============================
+  // SMOOTH SCROLL
+  // ==============================
+
   window.show = function (id) {
+
     document.getElementById(id)?.scrollIntoView({
       behavior: "smooth"
     });
+
   };
 
 });
