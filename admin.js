@@ -55,6 +55,7 @@ async function loadDashboard() {
 
     await loadRequests();
     await loadProperties();
+    await loadInterests();
 
   } catch (error) {
     ADMIN_KEY = "";
@@ -159,7 +160,7 @@ async function showMatches(requestId) {
 
   try {
     const data = await api(
-      `/api/matches/${encodeURIComponent(requestId)}`
+      `/api/admin/matches/${encodeURIComponent(requestId)}`
     );
 
     const matches = data.matches || [];
@@ -430,6 +431,150 @@ async function loadProperties() {
   }
 }
 
+async function loadInterests() {
+  const box = document.getElementById("interestsBox");
+
+  if (!box) return;
+
+  try {
+    const data = await api("/api/admin/interests");
+    const interests = data.interests || [];
+
+    if (!interests.length) {
+      box.innerHTML = "<p>No property requests yet.</p>";
+      return;
+    }
+
+    box.innerHTML = `
+      <table class="admin-table">
+
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Request ID</th>
+            <th>Customer</th>
+            <th>Customer Phone</th>
+            <th>Property</th>
+            <th>Area</th>
+            <th>Owner</th>
+            <th>Owner Phone</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          ${interests.map(i => `
+            <tr>
+
+              <td>${escapeHtml(i.id)}</td>
+
+              <td>
+                ${escapeHtml(i.request_id)}
+              </td>
+
+              <td>
+                ${escapeHtml(i.customer_name)}
+              </td>
+
+              <td>
+                ${escapeHtml(i.customer_phone)}
+              </td>
+
+              <td>
+                ${escapeHtml(i.property_type)}
+              </td>
+
+              <td>
+                ${escapeHtml(i.area)}
+              </td>
+
+              <td>
+                ${escapeHtml(i.owner_name)}
+              </td>
+
+              <td>
+                ${escapeHtml(i.owner_phone)}
+              </td>
+
+              <td>
+                <strong>
+                  ${escapeHtml(i.status || "new")}
+                </strong>
+              </td>
+
+              <td>
+
+                ${
+                  i.customer_phone
+                    ? `<a href="tel:${encodeURIComponent(i.customer_phone)}">
+                         <button>📞 Customer</button>
+                       </a>`
+                    : ""
+                }
+
+                ${
+                  i.owner_phone
+                    ? `<a href="tel:${encodeURIComponent(i.owner_phone)}">
+                         <button>📞 Owner</button>
+                       </a>`
+                    : ""
+                }
+
+                <button
+                  onclick="changeInterestStatus(${i.id},'contacted')">
+                  Contacted
+                </button>
+
+                <button
+                  onclick="changeInterestStatus(${i.id},'closed')">
+                  Closed
+                </button>
+
+              </td>
+
+            </tr>
+          `).join("")}
+
+        </tbody>
+
+      </table>
+    `;
+
+  } catch (error) {
+
+    box.innerHTML =
+      `<p class="danger">Could not load property requests.</p>`;
+
+    console.error(error);
+  }
+}
+
+async function changeInterestStatus(interestId, status) {
+
+  try {
+
+    await api(
+      `/api/admin/interests/${interestId}/status`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          status: status
+        })
+      }
+    );
+
+    await loadInterests();
+
+  } catch (error) {
+
+    alert("Could not update property request.");
+
+    console.error(error);
+  }
+}
+
 async function verifyProperty(id) {
 
   if (!confirm("Verify this property?")) {
@@ -470,6 +615,7 @@ async function changeStatus(requestId, status) {
     );
 
     await loadRequests();
+    await loadInterests();
 
   } catch (error) {
 
