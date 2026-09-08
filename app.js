@@ -8,12 +8,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const requestMsg = document.getElementById("requestMsg");
   const propertyMsg = document.getElementById("propertyMsg");
 
+  let currentRequestId = "";
 
-  // ==============================
-  // DISPLAY MATCHES
-  // ==============================
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
 
-  function renderMatches(matches) {
+  function escapeJs(value) {
+    return String(value ?? "")
+      .replace(/\\/g, "\\\\")
+      .replace(/'/g, "\\'")
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r");
+  }
+
+  function renderMatches(matches, requestId = currentRequestId) {
 
     if (!matches || matches.length === 0) {
       return `
@@ -31,10 +46,12 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="match-card">
 
           <strong>
-            ${property.property_type || "Property"}
+            ${escapeHtml(property.property_type || "Property")}
           </strong>
 
-          <p>📍 ${property.area || "Abu Dhabi"}</p>
+          <p>
+            📍 ${escapeHtml(property.area || "Abu Dhabi")}
+          </p>
 
           <p>
             💰 ${
@@ -45,28 +62,114 @@ document.addEventListener("DOMContentLoaded", () => {
           </p>
 
           <p>
-            🛏 ${property.bedrooms ?? "—"} bedrooms
+            🛏 ${escapeHtml(property.bedrooms ?? "—")} bedrooms
           </p>
 
           <p>
-            📐 ${property.size ?? "—"} sq ft
+            📐 ${escapeHtml(property.size ?? "—")} sq ft
           </p>
 
           <p>
             <strong>
-              Match score: ${property.score ?? 0}%
+              Match score: ${escapeHtml(property.score ?? 0)}%
             </strong>
           </p>
+
+          ${
+            property.features
+              ? `<p>✨ ${escapeHtml(property.features)}</p>`
+              : ""
+          }
+
+          ${
+            property.description
+              ? `<p>${escapeHtml(property.description)}</p>`
+              : ""
+          }
+
+          <button
+            type="button"
+            onclick="requestProperty('${escapeJs(property.id)}','${escapeJs(requestId)}')"
+          >
+            🏠 Request This Property
+          </button>
 
         </div>
       `).join("")}
     `;
   }
 
+  window.requestProperty = async function(propertyId, requestId) {
 
-  // ==============================
-  // FIND PROPERTY MATCHES
-  // ==============================
+    if (!propertyId || !requestId) {
+      alert("Missing property or request information.");
+      return;
+    }
+
+    const buttons = document.querySelectorAll(
+      `button[onclick*="'${escapeJs(propertyId)}'"]`
+    );
+
+    buttons.forEach(button => {
+      button.disabled = true;
+      button.textContent = "Submitting...";
+    });
+
+    try {
+
+      const response = await fetch(
+        `${API_URL}/api/property-interest`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            request_id: requestId,
+            property_id: Number(propertyId)
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || "Could not request this property."
+        );
+      }
+
+      if (result.already_requested) {
+        alert(
+          "You already requested this property. Our team will contact you."
+        );
+      } else {
+        alert(
+          "✅ Property requested successfully! Our team will contact you."
+        );
+      }
+
+      buttons.forEach(button => {
+        button.textContent = "✅ Property Requested";
+      });
+
+    } catch (error) {
+
+      alert(
+        error.message ||
+        "We could not request this property."
+      );
+
+      buttons.forEach(button => {
+        button.disabled = false;
+        button.textContent = "🏠 Request This Property";
+      });
+
+      console.error(error);
+    }
+  };
 
   requestForm?.addEventListener("submit", async (e) => {
 
@@ -87,10 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </p>
     `;
 
-
     try {
-
-      // STEP 1 — Create request
 
       const response = await fetch(
         `${API_URL}/api/requests`,
@@ -105,9 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       );
 
-
       const result = await response.json();
-
 
       if (!response.ok) {
         throw new Error(
@@ -115,8 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-
-      // STEP 2 — Find matching properties
+      currentRequestId = result.request_id;
 
       const matchResponse = await fetch(
         `${API_URL}/api/matches/${encodeURIComponent(
@@ -124,10 +221,8 @@ document.addEventListener("DOMContentLoaded", () => {
         )}`
       );
 
-
       const matchResult =
         await matchResponse.json();
-
 
       if (!matchResponse.ok) {
         throw new Error(
@@ -135,9 +230,6 @@ document.addEventListener("DOMContentLoaded", () => {
           "Could not find matches"
         );
       }
-
-
-      // STEP 3 — Display results
 
       requestMsg.innerHTML = `
 
@@ -149,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           <p>
             <strong>Your Request ID:</strong>
-            ${result.request_id}
+            ${escapeHtml(result.request_id)}
           </p>
 
           <p>
@@ -162,23 +254,28 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           </p>
 
-          ${renderMatches(matchResult.matches)}
+          ${renderMatches(
+            matchResult.matches,
+            result.request_id
+          )}
 
         </div>
 
       `;
 
-
       requestForm.reset();
-
 
     } catch (error) {
 
       requestMsg.innerHTML = `
 
         <p style="color:red">
-          ❌ ${error.message ||
-          "We could not submit your request yet."}
+          ❌ ${
+            escapeHtml(
+              error.message ||
+              "We could not submit your request yet."
+            )
+          }
         </p>
 
       `;
@@ -195,11 +292,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
   });
-
-
-  // ==============================
-  // SUBMIT PROPERTY
-  // ==============================
 
   propertyForm?.addEventListener("submit", async (e) => {
 
@@ -218,7 +310,6 @@ document.addEventListener("DOMContentLoaded", () => {
     button.disabled = true;
     button.textContent = "Submitting...";
 
-
     try {
 
       const response = await fetch(
@@ -234,10 +325,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       );
 
-
       const result =
         await response.json();
-
 
       if (!response.ok) {
         throw new Error(
@@ -245,7 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
           "Property submission failed"
         );
       }
-
 
       propertyMsg.innerHTML = `
 
@@ -260,17 +348,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
       `;
 
-
       propertyForm.reset();
-
 
     } catch (error) {
 
       propertyMsg.innerHTML = `
 
         <p style="color:red">
-          ❌ ${error.message ||
-          "We could not submit the property yet."}
+          ❌ ${
+            escapeHtml(
+              error.message ||
+              "We could not submit the property yet."
+            )
+          }
         </p>
 
       `;
@@ -288,11 +378,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   });
 
-
-  // ==============================
-  // CHECK REQUEST STATUS
-  // ==============================
-
   window.checkRequestStatus = async function () {
 
     const input =
@@ -305,13 +390,10 @@ document.addEventListener("DOMContentLoaded", () => {
         "statusResult"
       );
 
-
     if (!input || !resultBox) return;
-
 
     const requestId =
       input.value.trim();
-
 
     if (!requestId) {
 
@@ -324,13 +406,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    currentRequestId = requestId;
 
     resultBox.innerHTML = `
       <p>
         🔎 Checking your request...
       </p>
     `;
-
 
     try {
 
@@ -340,10 +422,8 @@ document.addEventListener("DOMContentLoaded", () => {
         )}`
       );
 
-
       const result =
         await response.json();
-
 
       if (!response.ok) {
 
@@ -353,29 +433,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
       }
-
-
-      const statusNames = {
-
-        received: "Received",
-
-        searching:
-          "Searching for matches",
-
-        match_found:
-          "Match found",
-
-        contacted:
-          "You have been contacted",
-
-        deal_closed:
-          "Deal closed",
-
-        closed:
-          "Closed"
-
-      };
-
 
       resultBox.innerHTML = `
 
@@ -387,35 +444,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
           <p>
             <strong>Request ID:</strong>
-            ${result.request.request_id}
+            ${escapeHtml(result.request.request_id)}
           </p>
 
           <p>
             <strong>Status:</strong>
-            ${
-              statusNames[
-                result.request.status
-              ] ||
-              result.request.status
-            }
+            ${escapeHtml(
+              result.request.status || "received"
+            )}
           </p>
 
           ${renderMatches(
-            result.matches
+            result.matches,
+            requestId
           )}
 
         </div>
 
       `;
 
-
     } catch (error) {
 
       resultBox.innerHTML = `
 
         <p style="color:red">
-          ❌ ${error.message ||
-          "Request not found."}
+          ❌ ${
+            escapeHtml(
+              error.message ||
+              "Request not found."
+            )
+          }
         </p>
 
         <p>
@@ -430,11 +488,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
   };
-
-
-  // ==============================
-  // SMOOTH SCROLL
-  // ==============================
 
   window.show = function (id) {
 
