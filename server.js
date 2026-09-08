@@ -56,6 +56,15 @@ async function initDatabase() {
       verified INTEGER DEFAULT 0,
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS property_interests (
+      id SERIAL PRIMARY KEY,
+      request_id TEXT NOT NULL,
+      property_id INTEGER NOT NULL,
+      status TEXT DEFAULT 'new',
+      created_at TEXT NOT NULL,
+      UNIQUE(request_id, property_id)
+    );
   `);
 
   console.log("PostgreSQL database ready.");
@@ -170,7 +179,22 @@ async function findMatches(request) {
     .sort((a, b) => b.score - a.score);
 }
 
-/* Health check */
+function publicProperty(property) {
+  return {
+    id: property.id,
+    property_type: property.property_type,
+    area: property.area,
+    price: property.price,
+    bedrooms: property.bedrooms,
+    size: property.size,
+    features: property.features,
+    description: property.description,
+    score: property.score,
+    reasons: property.reasons
+  };
+}
+
+/* Health */
 
 app.get("/api/health", async (req, res) => {
   try {
@@ -350,7 +374,6 @@ app.get("/api/requests/:requestId", async (req, res) => {
 
     res.json({
       success: true,
-
       request: {
         request_id: request.request_id,
         name: request.name,
@@ -359,8 +382,7 @@ app.get("/api/requests/:requestId", async (req, res) => {
         status: request.status,
         created_at: request.created_at
       },
-
-      matches
+      matches: matches.map(publicProperty)
     });
 
   } catch (error) {
@@ -373,7 +395,7 @@ app.get("/api/requests/:requestId", async (req, res) => {
   }
 });
 
-/* Get matches */
+/* Public matches */
 
 app.get("/api/matches/:requestId", async (req, res) => {
   try {
@@ -397,7 +419,7 @@ app.get("/api/matches/:requestId", async (req, res) => {
     res.json({
       success: true,
       request_id: request.request_id,
-      matches
+      matches: matches.map(publicProperty)
     });
 
   } catch (error) {
@@ -406,6 +428,104 @@ app.get("/api/matches/:requestId", async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Could not find matches."
+    });
+  }
+});
+
+/* Customer requests a property */
+
+app.post("/api/property-interest", async (req, res) => {
+  try {
+    const requestId = clean(req.body.request_id);
+    const propertyId = numberOrNull(req.body.property_id);
+
+    if (!requestId || !propertyId) {
+      return res.status(400).json({
+        success: false,
+        error: "Request ID and property ID are required."
+      });
+    }
+
+    const requestResult = await pool.query(`
+      SELECT request_id
+      FROM requests
+      WHERE request_id = $1
+    `, [requestId]);
+
+    if (!requestResult.rowCount) {
+      return res.status(404).json({
+        success: false,
+        error: "Request not found."
+      });
+    }
+
+    const propertyResult = await pool.query(`
+      SELECT id
+      FROM properties
+      WHERE id = $1
+      AND verified = 1
+    `, [propertyId]);
+
+    if (!propertyResult.rowCount) {
+      return res.status(404).json({
+        success: false,
+        error: "Property not found or not verified."
+      });
+    }
+
+    const existing = await pool.query(`
+      SELECT id, status
+      FROM property_interests
+      WHERE request_id = $1
+      AND property_id = $2
+    `, [requestId, propertyId]);
+
+    if (existing.rowCount) {
+      return res.json({
+        success: true,
+        already_requested: true,
+        message: "You already requested this property.",
+        interest_id: existing.rows[0].id,
+        status: existing.rows[0].status
+      });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO property_interests (
+        request_id,
+        property_id,
+        status,
+        created_at
+      )
+      VALUES ($1,$2,$3,$4)
+      RETURNING id, status
+    `, [
+      requestId,
+      propertyId,
+      "new",
+      new Date().toISOString()
+    ]);
+
+    await pool.query(`
+      UPDATE requests
+      SET status = 'match_found'
+      WHERE request_id = $1
+      AND status IN ('received','searching')
+    `, [requestId]);
+
+    res.status(201).json({
+      success: true,
+      message: "Property request received. Our team will contact you.",
+      interest_id: result.rows[0].id,
+      status: result.rows[0].status
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: "Could not request this property."
     });
   }
 });
@@ -508,13 +628,173 @@ app.get("/api/admin/properties", adminOnly, async (req, res) => {
   }
 });
 
+/* Admin full matches */
+
+app.get("/api/admin/matches/:requestId", adminOnly, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT *
+      FROM requests
+      WHERE request_id = $1
+    `, [req.params.requestId]);
+
+    const request = result.rows[0];
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        error: "Request not found."
+      });
+    }
+
+    const matches = await findMatches(request);
+
+    res.json({
+      success: true,
+      request: {
+        request_id: request.request_id,
+        name: request.name,
+        phone: request.phone,
+        email: request.email,
+        purpose: request.purpose,
+        property_type: request.property_type,
+        areas: request.areas,
+        budget_max: request.budget_max,
+        bedrooms: request.bedrooms,
+        size_min: request.size_min,
+        requirements: request.requirements,
+        status: request.status,
+        created_at: request.created_at
+      },
+      matches
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: "Could not load matches."
+    });
+  }
+});
+
+/* Admin property requests */
+
+app.get("/api/admin/interests", adminOnly, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        i.id,
+        i.request_id,
+        i.property_id,
+        i.status,
+        i.created_at,
+
+        r.name AS customer_name,
+        r.phone AS customer_phone,
+        r.email AS customer_email,
+
+        p.owner_name,
+        p.phone AS owner_phone,
+        p.email AS owner_email,
+        p.property_type,
+        p.area,
+        p.price,
+        p.bedrooms,
+        p.size,
+        p.features,
+        p.description,
+        p.verified
+
+      FROM property_interests i
+
+      LEFT JOIN requests r
+        ON r.request_id = i.request_id
+
+      LEFT JOIN properties p
+        ON p.id = i.property_id
+
+      ORDER BY i.id DESC
+    `);
+
+    res.json({
+      success: true,
+      interests: result.rows
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: "Could not load property requests."
+    });
+  }
+});
+
+/* Update property request status */
+
+app.post(
+  "/api/admin/interests/:interestId/status",
+  adminOnly,
+  async (req, res) => {
+    try {
+      const allowed = [
+        "new",
+        "contacted",
+        "closed"
+      ];
+
+      const status = clean(req.body.status);
+
+      if (!allowed.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid interest status."
+        });
+      }
+
+      const result = await pool.query(`
+        UPDATE property_interests
+        SET status = $1
+        WHERE id = $2
+        RETURNING id, status
+      `, [
+        status,
+        req.params.interestId
+      ]);
+
+      if (!result.rowCount) {
+        return res.status(404).json({
+          success: false,
+          error: "Property request not found."
+        });
+      }
+
+      res.json({
+        success: true,
+        interest_id: result.rows[0].id,
+        status: result.rows[0].status
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        success: false,
+        error: "Could not update property request."
+      });
+    }
+  }
+);
+
 /* Update request status */
 
 app.post(
   "/api/admin/requests/:requestId/status",
   adminOnly,
   async (req, res) => {
-
     try {
       const allowed = [
         "received",
@@ -574,7 +854,6 @@ app.post(
   "/api/admin/verify/:propertyId",
   adminOnly,
   async (req, res) => {
-
     try {
       const result = await pool.query(`
         UPDATE properties
