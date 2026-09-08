@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PropertyMatch Admin</title>
@@ -66,6 +67,10 @@
       overflow: auto;
     }
 
+    .interest-new {
+      font-weight: bold;
+    }
+
     @media (max-width: 700px) {
       .admin-grid {
         grid-template-columns: 1fr;
@@ -121,7 +126,7 @@
 
       <div>
         <h1>Admin Dashboard</h1>
-        <p>Manage requests and verify properties.</p>
+        <p>Manage requests, properties and customer interests.</p>
       </div>
 
       <button class="ghost" onclick="logout()">
@@ -152,12 +157,32 @@
     </div>
 
 
-    <!-- REQUESTS -->
+    <!-- CUSTOMER REQUESTS -->
     <div class="admin-card">
 
-      <h2>Requests</h2>
+      <h2>📋 Customer Requests</h2>
+
+      <p>
+        View customers and find suitable properties.
+      </p>
 
       <div id="requestsBox">
+        Loading...
+      </div>
+
+    </div>
+
+
+    <!-- PROPERTY REQUESTS -->
+    <div class="admin-card">
+
+      <h2>🏠 Property Requests</h2>
+
+      <p>
+        Customers who requested to be connected with a property owner.
+      </p>
+
+      <div id="interestsBox">
         Loading...
       </div>
 
@@ -167,7 +192,11 @@
     <!-- PROPERTIES -->
     <div class="admin-card">
 
-      <h2>Properties</h2>
+      <h2>🏘 Properties</h2>
+
+      <p>
+        Review and verify submitted properties.
+      </p>
 
       <div id="propertiesBox">
         Loading...
