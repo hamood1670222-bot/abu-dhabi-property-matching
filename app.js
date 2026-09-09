@@ -23,11 +23,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showMessage(id, message, success = true) {
     const el = document.getElementById(id);
+
     if (!el) return;
 
     el.textContent = message;
     el.style.color = success ? "green" : "crimson";
   }
+
+  /* SHOW / HIDE SECTIONS */
+  window.show = function (sectionId) {
+    const section = document.getElementById(sectionId);
+
+    if (!section) return;
+
+    section.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+    setTimeout(() => {
+      const firstInput = section.querySelector(
+        "input, select, textarea"
+      );
+
+      if (firstInput) {
+        firstInput.focus();
+      }
+    }, 500);
+  };
 
   /* CUSTOMER REQUEST */
   requestForm?.addEventListener("submit", async (e) => {
@@ -36,7 +59,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = new FormData(requestForm);
     const data = Object.fromEntries(form.entries());
 
-    showMessage("requestMsg", "Finding your best property matches...", true);
+    showMessage(
+      "requestMsg",
+      "Finding your best property matches...",
+      true
+    );
 
     try {
       const response = await fetch(`${API_URL}/api/requests`, {
@@ -50,7 +77,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || "Unable to create request.");
+        throw new Error(
+          result.error || "Unable to create your request."
+        );
       }
 
       currentRequestId =
@@ -61,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       showMessage(
         "requestMsg",
-        `Request received. Your Request ID is ${currentRequestId}.`,
+        `Request received successfully. Your Request ID is ${currentRequestId}.`,
         true
       );
 
@@ -72,9 +101,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (error) {
       console.error(error);
+
       showMessage(
         "requestMsg",
-        error.message || "Something went wrong. Please try again.",
+        error.message ||
+          "Something went wrong. Please try again.",
         false
       );
     }
@@ -90,21 +121,25 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || "Unable to load matches.");
+        throw new Error(
+          result.error || "Unable to load matches."
+        );
       }
 
       renderMatches(result.matches || [], requestId);
     } catch (error) {
       console.error(error);
+
       showMessage(
         "requestMsg",
-        error.message || "Unable to load matches.",
+        error.message ||
+          "Unable to load matches.",
         false
       );
     }
   }
 
-  /* MATCH RESULT CARDS */
+  /* MATCH CARDS */
   function renderMatches(matches, requestId) {
     let box = document.getElementById("matchesBox");
 
@@ -117,7 +152,10 @@ document.addEventListener("DOMContentLoaded", () => {
         requestForm?.parentElement ||
         document.body;
 
-      requestSection.insertAdjacentElement("afterend", box);
+      requestSection.insertAdjacentElement(
+        "afterend",
+        box
+      );
     }
 
     if (!matches || matches.length === 0) {
@@ -125,104 +163,144 @@ document.addEventListener("DOMContentLoaded", () => {
         <section class="panel">
           <h2>🔎 Your Matches</h2>
           <p>No verified properties match your request yet.</p>
-          <p>We'll keep your request in the system while new properties are added.</p>
+          <p>
+            Your request is saved and we'll keep looking
+            as new properties are added.
+          </p>
         </section>
       `;
+
       return;
     }
 
     box.innerHTML = `
       <section class="panel">
         <h2>🏠 Your Property Matches</h2>
-        <p>We found ${matches.length} verified ${matches.length === 1 ? "property" : "properties"} that may suit your request.</p>
+
+        <p>
+          We found ${matches.length}
+          ${matches.length === 1 ? "property" : "properties"}
+          that may suit your request.
+        </p>
 
         <div class="cards">
-          ${matches.map((property) => {
-            const propertyId = property.id;
-            const score =
-              property.match_score ??
-              property.score ??
-              property.matchScore ??
-              0;
+          ${matches
+            .map((property) => {
+              const propertyId = property.id;
 
-            const type =
-              property.property_type ||
-              property.type ||
-              "Property";
+              const score =
+                property.match_score ??
+                property.score ??
+                property.matchScore ??
+                0;
 
-            const area =
-              property.area ||
-              property.location ||
-              property.community ||
-              "Abu Dhabi";
+              const type =
+                property.property_type ||
+                property.type ||
+                "Property";
 
-            const bedrooms =
-              property.bedrooms ??
-              property.beds ??
-              "";
+              const area =
+                property.area ||
+                property.location ||
+                property.community ||
+                "Abu Dhabi";
 
-            const bathrooms =
-              property.bathrooms ??
-              property.baths ??
-              "";
+              const bedrooms =
+                property.bedrooms ??
+                property.beds ??
+                "";
 
-            const price =
-              property.price ??
-              property.monthly_rent ??
-              property.rent ??
-              "";
+              const bathrooms =
+                property.bathrooms ??
+                property.baths ??
+                "";
 
-            return `
-              <article class="match-card">
-                <div class="match-score">
-                  ${escapeHtml(score)}% Match
-                </div>
+              const price =
+                property.price ??
+                property.monthly_rent ??
+                property.rent ??
+                "";
 
-                <h3>${escapeHtml(type)}</h3>
+              return `
+                <article class="match-card">
 
-                <p><strong>📍 Area:</strong> ${escapeHtml(area)}</p>
+                  <div class="match-score">
+                    ${escapeHtml(score)}% Match
+                  </div>
 
-                ${
-                  price
-                    ? `<p><strong>💰 Price:</strong> ${escapeHtml(price)}</p>`
-                    : ""
-                }
+                  <h3>
+                    ${escapeHtml(type)}
+                  </h3>
 
-                ${
-                  bedrooms !== ""
-                    ? `<p><strong>🛏 Bedrooms:</strong> ${escapeHtml(bedrooms)}</p>`
-                    : ""
-                }
+                  <p>
+                    <strong>📍 Area:</strong>
+                    ${escapeHtml(area)}
+                  </p>
 
-                ${
-                  bathrooms !== ""
-                    ? `<p><strong>🚿 Bathrooms:</strong> ${escapeHtml(bathrooms)}</p>`
-                    : ""
-                }
+                  ${
+                    price !== ""
+                      ? `
+                        <p>
+                          <strong>💰 Price:</strong>
+                          AED ${escapeHtml(price)}
+                        </p>
+                      `
+                      : ""
+                  }
 
-                <button
-                  type="button"
-                  class="request-property-btn"
-                  onclick="requestProperty('${escapeJs(propertyId)}','${escapeJs(requestId)}')"
-                >
-                  🏠 Request This Property
-                </button>
-              </article>
-            `;
-          }).join("")}
+                  ${
+                    bedrooms !== ""
+                      ? `
+                        <p>
+                          <strong>🛏 Bedrooms:</strong>
+                          ${escapeHtml(bedrooms)}
+                        </p>
+                      `
+                      : ""
+                  }
+
+                  ${
+                    bathrooms !== ""
+                      ? `
+                        <p>
+                          <strong>🚿 Bathrooms:</strong>
+                          ${escapeHtml(bathrooms)}
+                        </p>
+                      `
+                      : ""
+                  }
+
+                  <button
+                    type="button"
+                    class="request-property-btn"
+                    onclick="requestProperty('${escapeJs(
+                      propertyId
+                    )}', '${escapeJs(requestId)}', this)"
+                  >
+                    🏠 Request This Property
+                  </button>
+
+                </article>
+              `;
+            })
+            .join("")}
         </div>
       </section>
     `;
   }
 
-  /* REQUEST A PROPERTY */
-  window.requestProperty = async (propertyId, requestId) => {
+  /* REQUEST PROPERTY */
+  window.requestProperty = async (
+    propertyId,
+    requestId,
+    button
+  ) => {
     if (!requestId) {
-      alert("Your request ID is missing. Please submit a new request.");
+      alert(
+        "Your Request ID is missing. Please submit a new request."
+      );
       return;
     }
-
-    const button = event?.currentTarget;
 
     if (button) {
       button.disabled = true;
@@ -230,16 +308,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/property-interest`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          request_id: requestId,
-          property_id: Number(propertyId)
-        })
-      });
+      const response = await fetch(
+        `${API_URL}/api/property-interest`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            request_id: requestId,
+            property_id: Number(propertyId)
+          })
+        }
+      );
 
       const result = await response.json();
 
@@ -247,11 +328,20 @@ document.addEventListener("DOMContentLoaded", () => {
         alert(
           "You have already requested this property. Our team will contact you."
         );
+
+        if (button) {
+          button.disabled = true;
+          button.textContent = "✓ Already Requested";
+        }
+
         return;
       }
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || "Unable to send your request.");
+        throw new Error(
+          result.error ||
+            "Unable to send your property request."
+        );
       }
 
       alert(
@@ -259,6 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
       if (button) {
+        button.disabled = true;
         button.textContent = "✓ Requested";
       }
     } catch (error) {
@@ -271,7 +362,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (button) {
         button.disabled = false;
-        button.textContent = "🏠 Request This Property";
+        button.textContent =
+          "🏠 Request This Property";
       }
     }
   };
@@ -285,23 +377,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showMessage(
       "propertyMsg",
-      "Property received. Pending verification.",
+      "Submitting property...",
       true
     );
 
     try {
-      const response = await fetch(`${API_URL}/api/properties`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await fetch(
+        `${API_URL}/api/properties`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        }
+      );
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || "Unable to submit property.");
+        throw new Error(
+          result.error ||
+            "Unable to submit property."
+        );
       }
 
       showMessage(
@@ -316,54 +414,93 @@ document.addEventListener("DOMContentLoaded", () => {
 
       showMessage(
         "propertyMsg",
-        error.message || "Unable to submit property.",
+        error.message ||
+          "Unable to submit property.",
         false
       );
     }
   });
 
-  /* STATUS CHECK */
-  window.checkRequest = async () => {
+  /* CHECK REQUEST STATUS */
+  window.checkRequestStatus = async function () {
     const input =
-      document.getElementById("statusRequestId") ||
-      document.getElementById("requestId");
+      document.getElementById("requestStatusId");
+
+    const resultBox =
+      document.getElementById("statusResult");
 
     if (!input) return;
 
     const requestId = input.value.trim();
 
     if (!requestId) {
-      alert("Please enter your Request ID.");
+      if (resultBox) {
+        resultBox.textContent =
+          "Please enter your Request ID.";
+        resultBox.style.color = "crimson";
+      }
+
       return;
     }
 
     currentRequestId = requestId;
 
+    if (resultBox) {
+      resultBox.textContent =
+        "Checking your request...";
+      resultBox.style.color = "#667085";
+    }
+
     try {
       const response = await fetch(
-        `${API_URL}/api/requests/${encodeURIComponent(requestId)}`
+        `${API_URL}/api/requests/${encodeURIComponent(
+          requestId
+        )}`
       );
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || "Request not found.");
+        throw new Error(
+          result.error ||
+            "Request not found."
+        );
       }
 
-      const statusBox =
-        document.getElementById("statusMsg") ||
-        document.getElementById("requestMsg");
+      const status =
+        result.request?.status ||
+        "received";
 
-      if (statusBox) {
-        statusBox.textContent =
-          `Request ${requestId}: ${result.request?.status || "received"}`;
-        statusBox.style.color = "green";
+      if (resultBox) {
+        resultBox.innerHTML = `
+          <p>
+            <strong>Request ID:</strong>
+            ${escapeHtml(requestId)}
+          </p>
+
+          <p>
+            <strong>Status:</strong>
+            ${escapeHtml(status)}
+          </p>
+        `;
+
+        resultBox.style.color = "green";
       }
 
-      renderMatches(result.matches || [], requestId);
+      renderMatches(
+        result.matches || [],
+        requestId
+      );
     } catch (error) {
       console.error(error);
-      alert(error.message || "Unable to check request.");
+
+      if (resultBox) {
+        resultBox.textContent =
+          error.message ||
+          "Unable to check your request.";
+
+        resultBox.style.color = "crimson";
+      }
     }
   };
 });
