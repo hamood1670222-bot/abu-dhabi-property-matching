@@ -4,29 +4,59 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// =========================
+// MIDDLEWARE
+// =========================
+
 app.use(cors());
 app.use(express.json());
 
-// Temporary in-memory data
-// Later we can connect this to a real database.
+// =========================
+// ADMIN KEY
+// =========================
+
+const ADMIN_KEY = process.env.ADMIN_KEY;
+
+function requireAdmin(req, res, next) {
+  if (!ADMIN_KEY) {
+    return res.status(500).json({
+      error: "ADMIN_KEY is not configured on the server."
+    });
+  }
+
+  const suppliedKey = req.headers["x-admin-key"];
+
+  if (!suppliedKey || suppliedKey !== ADMIN_KEY) {
+    return res.status(401).json({
+      error: "Invalid admin key."
+    });
+  }
+
+  next();
+}
+
+// =========================
+// TEMPORARY DATABASE
+// =========================
+
 const propertyRequests = [];
 const properties = [];
+const interests = [];
 
-/* =========================
-   HOME / HEALTH CHECK
-========================= */
+// =========================
+// HEALTH CHECK
+// =========================
 
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "PropertyMatch Abu Dhabi API is running",
+    message: "PropertyMatch Abu Dhabi API is running"
   });
 });
 
-/* =========================
-   CUSTOMER PROPERTY REQUEST
-========================= */
+// =========================
+// CUSTOMER REQUEST
+// =========================
 
 app.post("/api/requests", (req, res) => {
   try {
@@ -34,355 +64,468 @@ app.post("/api/requests", (req, res) => {
       name,
       phone,
       email,
+      purpose,
       propertyType,
+      property_type,
       areas,
       budgetMin,
       budgetMax,
+      budget_max,
       bedrooms,
-      requirements,
+      requirements
     } = req.body;
 
     if (!name || !phone) {
       return res.status(400).json({
         success: false,
-        message: "Customer name and phone are required.",
+        message: "Customer name and phone are required."
       });
     }
 
+    const requestId = "REQ-" + Date.now();
+
     const request = {
+      request_id: requestId,
       id: Date.now(),
       name,
       phone,
       email: email || "",
-      propertyType: propertyType || "",
+      purpose: purpose || "",
+      property_type: propertyType || property_type || "",
       areas: areas || "",
-      budgetMin: budgetMin || "",
-      budgetMax: budgetMax || "",
+      budget_min: budgetMin || "",
+      budget_max: budgetMax || budget_max || "",
       bedrooms: bedrooms || "",
       requirements: requirements || "",
-      createdAt: new Date().toISOString(),
+      status: "received",
+      createdAt: new Date().toISOString()
     };
 
     propertyRequests.push(request);
 
-    // Find matching properties
-    const matches = properties.filter((property) => {
-      let match = true;
-
-      // Property type
-      if (
-        propertyType &&
-        property.propertyType &&
-        property.propertyType.toLowerCase() !==
-          propertyType.toLowerCase()
-      ) {
-        match = false;
-      }
-
-      // Area
-      if (areas && property.area) {
-        const requestedAreas = areas
-          .toLowerCase()
-          .split(",")
-          .map((x) => x.trim());
-
-        const propertyArea = property.area.toLowerCase();
-
-        const areaMatch = requestedAreas.some((area) =>
-          propertyArea.includes(area)
-        );
-
-        if (!areaMatch) {
-          match = false;
-        }
-      }
-
-      // Minimum budget
-      if (budgetMin && property.price) {
-        if (Number(property.price) < Number(budgetMin)) {
-          match = false;
-        }
-      }
-
-      // Maximum budget
-      if (budgetMax && property.price) {
-        if (Number(property.price) > Number(budgetMax)) {
-          match = false;
-        }
-      }
-
-      // Bedrooms
-      if (bedrooms && property.bedrooms) {
-        if (Number(property.bedrooms) < Number(bedrooms)) {
-          match = false;
-        }
-      }
-
-      return match;
-    });
+    const matches = findMatches(request);
 
     res.status(201).json({
       success: true,
       message: "Property request submitted successfully.",
       request,
       matches,
-      matchCount: matches.length,
+      matchCount: matches.length
     });
+
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
       success: false,
-      message: "Something went wrong while submitting the request.",
+      message: "Something went wrong."
     });
   }
 });
 
-/* =========================
-   SUBMIT PROPERTY
-========================= */
+// =========================
+// PROPERTY SUBMISSION
+// =========================
 
 app.post("/api/properties", (req, res) => {
   try {
     const {
       ownerName,
+      owner_name,
       ownerPhone,
+      phone,
       ownerEmail,
+      email,
       propertyType,
+      property_type,
       area,
       price,
       bedrooms,
       bathrooms,
       propertySize,
+      size,
       description,
-      image,
+      image
     } = req.body;
 
-    if (!ownerName || !ownerPhone) {
+    const finalOwnerName = ownerName || owner_name;
+    const finalPhone = ownerPhone || phone;
+
+    if (!finalOwnerName || !finalPhone) {
       return res.status(400).json({
         success: false,
-        message: "Owner name and phone are required.",
+        message: "Owner name and phone are required."
       });
     }
 
     const property = {
       id: Date.now(),
-      ownerName,
-      ownerPhone,
-      ownerEmail: ownerEmail || "",
-      propertyType: propertyType || "",
+      owner_name: finalOwnerName,
+      phone: finalPhone,
+      email: ownerEmail || email || "",
+      property_type: propertyType || property_type || "",
       area: area || "",
       price: price || "",
       bedrooms: bedrooms || "",
       bathrooms: bathrooms || "",
-      propertySize: propertySize || "",
+      size: propertySize || size || "",
       description: description || "",
       image: image || "",
+      verified: 0,
       status: "pending",
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     };
 
     properties.push(property);
 
     res.status(201).json({
       success: true,
-      message: "Property submitted successfully and is waiting for approval.",
-      property,
+      message:
+        "Property submitted successfully and is waiting for verification.",
+      property
     });
+
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
       success: false,
-      message: "Something went wrong while submitting the property.",
+      message: "Something went wrong."
     });
   }
 });
 
-/* =========================
-   GET ALL PROPERTIES
-========================= */
-
-app.get("/api/properties", (req, res) => {
-  res.json({
-    success: true,
-    properties,
-  });
-});
-
-/* =========================
-   GET APPROVED PROPERTIES
-========================= */
+// =========================
+// PUBLIC APPROVED PROPERTIES
+// =========================
 
 app.get("/api/properties/approved", (req, res) => {
-  const approvedProperties = properties.filter(
-    (property) => property.status === "approved"
+  const approved = properties.filter(
+    p => Number(p.verified) === 1
   );
 
   res.json({
     success: true,
-    properties: approvedProperties,
+    properties: approved
   });
 });
 
-/* =========================
-   GET ALL CUSTOMER REQUESTS
-========================= */
+// =========================
+// MATCHING ENGINE
+// =========================
 
-app.get("/api/requests", (req, res) => {
-  res.json({
-    success: true,
-    requests: propertyRequests,
-  });
-});
+function findMatches(request) {
+  return properties
+    .filter(p => Number(p.verified) === 1)
+    .map(property => {
 
-/* =========================
-   ADMIN DASHBOARD DATA
-========================= */
+      let score = 0;
+      const reasons = [];
 
-app.get("/api/admin/dashboard", (req, res) => {
-  const pendingProperties = properties.filter(
-    (property) => property.status === "pending"
-  );
+      // Property type
+      if (
+        request.property_type &&
+        property.property_type &&
+        property.property_type.toLowerCase() ===
+          request.property_type.toLowerCase()
+      ) {
+        score += 30;
+        reasons.push("Property type matches");
+      }
 
-  const approvedProperties = properties.filter(
-    (property) => property.status === "approved"
-  );
+      // Area
+      if (request.areas && property.area) {
+        const requestedAreas = String(request.areas)
+          .toLowerCase()
+          .split(",")
+          .map(x => x.trim())
+          .filter(Boolean);
 
-  const rejectedProperties = properties.filter(
-    (property) => property.status === "rejected"
-  );
+        const propertyArea = property.area.toLowerCase();
 
-  res.json({
-    success: true,
+        if (
+          requestedAreas.some(area =>
+            propertyArea.includes(area)
+          )
+        ) {
+          score += 30;
+          reasons.push("Area matches");
+        }
+      }
 
-    statistics: {
-      totalProperties: properties.length,
-      pendingProperties: pendingProperties.length,
-      approvedProperties: approvedProperties.length,
-      rejectedProperties: rejectedProperties.length,
-      totalRequests: propertyRequests.length,
-    },
+      // Budget
+      const maxBudget = Number(request.budget_max);
+      const propertyPrice = Number(property.price);
 
-    properties,
-    requests: propertyRequests,
-  });
-});
+      if (
+        maxBudget &&
+        propertyPrice &&
+        propertyPrice <= maxBudget
+      ) {
+        score += 25;
+        reasons.push("Within budget");
+      }
 
-/* =========================
-   APPROVE PROPERTY
-========================= */
+      // Bedrooms
+      if (
+        request.bedrooms &&
+        property.bedrooms &&
+        Number(property.bedrooms) >= Number(request.bedrooms)
+      ) {
+        score += 15;
+        reasons.push("Bedroom requirement matches");
+      }
 
-app.put("/api/properties/:id/approve", (req, res) => {
-  const id = Number(req.params.id);
+      return {
+        ...property,
+        score,
+        reasons
+      };
+    })
+    .filter(p => p.score > 0)
+    .sort((a, b) => b.score - a.score);
+}
 
-  const property = properties.find(
-    (item) => item.id === id
-  );
+// =========================
+// ADMIN SUMMARY
+// =========================
 
-  if (!property) {
-    return res.status(404).json({
-      success: false,
-      message: "Property not found.",
+app.get(
+  "/api/admin/summary",
+  requireAdmin,
+  (req, res) => {
+
+    res.json({
+      success: true,
+      requests: propertyRequests.length,
+      properties: properties.length,
+      verified_properties: properties.filter(
+        p => Number(p.verified) === 1
+      ).length
     });
   }
+);
 
-  property.status = "approved";
-  property.updatedAt = new Date().toISOString();
+// =========================
+// ADMIN REQUESTS
+// =========================
 
-  res.json({
-    success: true,
-    message: "Property approved successfully.",
-    property,
-  });
-});
+app.get(
+  "/api/admin/requests",
+  requireAdmin,
+  (req, res) => {
 
-/* =========================
-   REJECT PROPERTY
-========================= */
-
-app.put("/api/properties/:id/reject", (req, res) => {
-  const id = Number(req.params.id);
-
-  const property = properties.find(
-    (item) => item.id === id
-  );
-
-  if (!property) {
-    return res.status(404).json({
-      success: false,
-      message: "Property not found.",
+    res.json({
+      success: true,
+      requests: propertyRequests
     });
   }
+);
 
-  property.status = "rejected";
-  property.updatedAt = new Date().toISOString();
+// =========================
+// ADMIN PROPERTIES
+// =========================
 
-  res.json({
-    success: true,
-    message: "Property rejected.",
-    property,
-  });
-});
+app.get(
+  "/api/admin/properties",
+  requireAdmin,
+  (req, res) => {
 
-/* =========================
-   DELETE PROPERTY
-========================= */
-
-app.delete("/api/properties/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  const index = properties.findIndex(
-    (property) => property.id === id
-  );
-
-  if (index === -1) {
-    return res.status(404).json({
-      success: false,
-      message: "Property not found.",
+    res.json({
+      success: true,
+      properties
     });
   }
+);
 
-  const deletedProperty = properties.splice(index, 1);
+// =========================
+// ADMIN MATCHES
+// =========================
 
-  res.json({
-    success: true,
-    message: "Property deleted successfully.",
-    property: deletedProperty[0],
-  });
-});
+app.get(
+  "/api/admin/matches/:requestId",
+  requireAdmin,
+  (req, res) => {
 
-/* =========================
-   DELETE CUSTOMER REQUEST
-========================= */
+    const request = propertyRequests.find(
+      r => String(r.request_id) ===
+        String(req.params.requestId)
+    );
 
-app.delete("/api/requests/:id", (req, res) => {
-  const id = Number(req.params.id);
+    if (!request) {
+      return res.status(404).json({
+        error: "Request not found."
+      });
+    }
 
-  const index = propertyRequests.findIndex(
-    (request) => request.id === id
-  );
+    const matches = findMatches(request);
 
-  if (index === -1) {
-    return res.status(404).json({
-      success: false,
-      message: "Request not found.",
+    res.json({
+      success: true,
+      matches
     });
   }
+);
 
-  const deletedRequest = propertyRequests.splice(index, 1);
+// =========================
+// VERIFY PROPERTY
+// =========================
 
-  res.json({
-    success: true,
-    message: "Request deleted successfully.",
-    request: deletedRequest[0],
-  });
-});
+app.post(
+  "/api/admin/verify/:id",
+  requireAdmin,
+  (req, res) => {
 
-/* =========================
-   START SERVER
-========================= */
+    const property = properties.find(
+      p => Number(p.id) === Number(req.params.id)
+    );
+
+    if (!property) {
+      return res.status(404).json({
+        error: "Property not found."
+      });
+    }
+
+    property.verified = 1;
+    property.status = "approved";
+    property.updatedAt =
+      new Date().toISOString();
+
+    res.json({
+      success: true,
+      message: "Property verified successfully.",
+      property
+    });
+  }
+);
+
+// =========================
+// CHANGE REQUEST STATUS
+// =========================
+
+app.post(
+  "/api/admin/requests/:requestId/status",
+  requireAdmin,
+  (req, res) => {
+
+    const request = propertyRequests.find(
+      r =>
+        String(r.request_id) ===
+        String(req.params.requestId)
+    );
+
+    if (!request) {
+      return res.status(404).json({
+        error: "Request not found."
+      });
+    }
+
+    request.status =
+      req.body.status || "received";
+
+    request.updatedAt =
+      new Date().toISOString();
+
+    res.json({
+      success: true,
+      request
+    });
+  }
+);
+
+// =========================
+// ADMIN INTERESTS
+// =========================
+
+app.get(
+  "/api/admin/interests",
+  requireAdmin,
+  (req, res) => {
+
+    res.json({
+      success: true,
+      interests
+    });
+  }
+);
+
+// =========================
+// CHANGE INTEREST STATUS
+// =========================
+
+app.post(
+  "/api/admin/interests/:id/status",
+  requireAdmin,
+  (req, res) => {
+
+    const interest = interests.find(
+      i => Number(i.id) ===
+        Number(req.params.id)
+    );
+
+    if (!interest) {
+      return res.status(404).json({
+        error: "Interest not found."
+      });
+    }
+
+    interest.status =
+      req.body.status || "new";
+
+    interest.updatedAt =
+      new Date().toISOString();
+
+    res.json({
+      success: true,
+      interest
+    });
+  }
+);
+
+// =========================
+// OLD ADMIN DASHBOARD
+// =========================
+
+app.get(
+  "/api/admin/dashboard",
+  requireAdmin,
+  (req, res) => {
+
+    res.json({
+      success: true,
+      statistics: {
+        totalProperties: properties.length,
+        pendingProperties:
+          properties.filter(
+            p => p.status === "pending"
+          ).length,
+        approvedProperties:
+          properties.filter(
+            p => p.status === "approved"
+          ).length,
+        totalRequests:
+          propertyRequests.length
+      },
+      properties,
+      requests: propertyRequests
+    });
+  }
+);
+
+// =========================
+// START SERVER
+// =========================
 
 app.listen(PORT, () => {
-  console.log(`PropertyMatch API running on port ${PORT}`);
+  console.log(
+    `PropertyMatch API running on port ${PORT}`
+  );
+
+  if (ADMIN_KEY) {
+    console.log("Admin key is configured.");
+  } else {
+    console.log(
+      "WARNING: ADMIN_KEY is not configured."
+    );
+  }
 });
