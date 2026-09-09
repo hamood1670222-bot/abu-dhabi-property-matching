@@ -6,15 +6,33 @@
 
   <title>PropertyMatch Abu Dhabi</title>
 
-  <link rel="stylesheet" href="style.css?v=50">
+  <link rel="stylesheet" href="style.css?v=60">
 
   <style>
+    /* =====================================================
+       PREMIUM PROPERTYMATCH
+       Landing + Find + Submit
+    ===================================================== */
+
+    :root {
+      --pm-navy: #071525;
+      --pm-navy2: #0d2137;
+      --pm-gold: #c9a46a;
+      --pm-gold2: #e6ca96;
+      --pm-white: #ffffff;
+      --pm-text: #182331;
+      --pm-muted: #6d7784;
+    }
+
     body {
       margin: 0;
-      background: #07111d;
-      color: #fff;
-      font-family: Inter, Arial, sans-serif;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: var(--pm-navy);
     }
+
+    /* =====================================================
+       LANDING PAGE
+    ===================================================== */
 
     .choice-page {
       min-height: 100vh;
@@ -24,9 +42,9 @@
       background:
         linear-gradient(
           90deg,
-          rgba(5,15,27,.96) 0%,
-          rgba(5,15,27,.78) 42%,
-          rgba(5,15,27,.32) 100%
+          rgba(4,13,24,.97) 0%,
+          rgba(4,13,24,.80) 42%,
+          rgba(4,13,24,.32) 100%
         ),
         url("https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=2200&q=90")
         center/cover;
@@ -40,26 +58,26 @@
       background:
         linear-gradient(
           180deg,
-          rgba(0,0,0,.15),
-          rgba(0,0,0,.35)
+          rgba(0,0,0,.05),
+          rgba(0,0,0,.40)
         );
 
       pointer-events: none;
     }
 
     .choice-nav {
-      position: relative;
-      z-index: 5;
-
       height: 82px;
+
+      max-width: 1250px;
+      margin: auto;
+      padding: 0 28px;
 
       display: flex;
       align-items: center;
       justify-content: space-between;
 
-      max-width: 1250px;
-      margin: auto;
-      padding: 0 28px;
+      position: relative;
+      z-index: 5;
     }
 
     .choice-logo {
@@ -74,82 +92,81 @@
 
       border-radius: 12px;
 
-      background: #c9a46a;
-      color: #091624;
+      background: var(--pm-gold);
+      color: var(--pm-navy);
 
       display: grid;
       place-items: center;
 
       font-weight: 950;
-      letter-spacing: 1px;
     }
 
     .choice-logo strong {
       display: block;
 
+      color: white;
+
       font-size: 18px;
-      letter-spacing: .2px;
     }
 
     .choice-logo small {
       display: block;
 
-      margin-top: 2px;
-
-      color: #e3c58f;
+      color: var(--pm-gold2);
 
       font-size: 9px;
       font-weight: 900;
-      letter-spacing: 2.3px;
+      letter-spacing: 2.4px;
     }
 
     .choice-location {
-      color: rgba(255,255,255,.72);
+      color: rgba(255,255,255,.70);
 
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .choice-content {
-      position: relative;
-      z-index: 4;
-
       max-width: 1250px;
       margin: auto;
 
       padding: 90px 28px 110px;
+
+      position: relative;
+      z-index: 4;
     }
 
     .choice-eyebrow {
-      color: #e3c58f;
+      color: var(--pm-gold2);
 
       font-size: 11px;
       font-weight: 950;
-      letter-spacing: 3px;
 
+      letter-spacing: 3px;
       text-transform: uppercase;
     }
 
     .choice-content h1 {
-      max-width: 780px;
+      max-width: 800px;
 
-      margin: 18px 0 18px;
+      margin: 18px 0;
 
-      font-size: clamp(45px, 6vw, 78px);
+      color: white;
+
+      font-size: clamp(46px, 6vw, 78px);
 
       line-height: .98;
-
       letter-spacing: -3px;
     }
 
     .choice-content h1 span {
-      color: #e3c58f;
+      color: var(--pm-gold2);
     }
 
     .choice-description {
-      max-width: 600px;
+      max-width: 610px;
 
-      margin-bottom: 42px;
+      margin: 0 0 42px;
 
       color: rgba(255,255,255,.76);
 
@@ -158,10 +175,9 @@
     }
 
     .choice-cards {
-      max-width: 900px;
+      max-width: 920px;
 
       display: grid;
-
       grid-template-columns: 1fr 1fr;
 
       gap: 18px;
@@ -170,48 +186,43 @@
     .choice-card {
       min-height: 245px;
 
-      position: relative;
+      padding: 30px;
 
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
 
-      padding: 30px;
+      position: relative;
 
-      border: 1px solid rgba(255,255,255,.22);
-
+      border: 1px solid rgba(255,255,255,.23);
       border-radius: 18px;
 
       background:
         linear-gradient(
           145deg,
-          rgba(255,255,255,.14),
+          rgba(255,255,255,.15),
           rgba(255,255,255,.035)
         );
 
       backdrop-filter: blur(12px);
 
-      box-shadow:
-        0 25px 70px rgba(0,0,0,.28);
+      box-shadow: 0 25px 70px rgba(0,0,0,.30);
 
       cursor: pointer;
 
-      transition:
-        transform .25s ease,
-        border-color .25s ease,
-        background .25s ease;
+      transition: .25s ease;
     }
 
     .choice-card:hover {
       transform: translateY(-7px);
 
-      border-color: #e3c58f;
+      border-color: var(--pm-gold2);
 
       background:
         linear-gradient(
           145deg,
           rgba(201,164,106,.28),
-          rgba(255,255,255,.07)
+          rgba(255,255,255,.06)
         );
     }
 
@@ -229,48 +240,46 @@
       display: grid;
       place-items: center;
 
-      background: #c9a46a;
-      color: #091624;
+      background: var(--pm-gold);
 
       font-size: 24px;
     }
 
     .choice-card-label {
-      margin-bottom: 8px;
-
-      color: #e3c58f;
+      color: var(--pm-gold2);
 
       font-size: 10px;
       font-weight: 950;
+
       letter-spacing: 2px;
       text-transform: uppercase;
     }
 
     .choice-card h2 {
-      margin: 0 0 9px;
+      margin: 8px 0;
 
-      color: #fff;
+      color: white;
 
-      font-size: 29px;
+      font-size: 30px;
 
       letter-spacing: -.7px;
     }
 
     .choice-card p {
-      max-width: 360px;
+      max-width: 390px;
 
       margin: 0;
 
       color: rgba(255,255,255,.72);
 
       font-size: 14px;
-      line-height: 1.55;
+      line-height: 1.6;
     }
 
     .choice-arrow {
       margin-top: 20px;
 
-      color: #e3c58f;
+      color: var(--pm-gold2);
 
       font-size: 13px;
       font-weight: 950;
@@ -281,9 +290,9 @@
 
       display: flex;
       flex-wrap: wrap;
-      gap: 22px;
+      gap: 24px;
 
-      color: rgba(255,255,255,.58);
+      color: rgba(255,255,255,.60);
 
       font-size: 12px;
       font-weight: 700;
@@ -294,58 +303,80 @@
 
       margin-right: 7px;
 
-      color: #c9a46a;
-
-      font-weight: 950;
+      color: var(--pm-gold);
     }
 
-    /* APP SECTIONS */
+    /* =====================================================
+       INSIDE PAGES
+    ===================================================== */
 
     .app-section {
-      display: none;
-
       min-height: 100vh;
 
-      background: #f5f6f8;
+      display: none;
 
-      color: #182331;
+      position: relative;
 
-      padding-bottom: 80px;
+      overflow: hidden;
+
+      background:
+        linear-gradient(
+          90deg,
+          rgba(5,15,27,.96),
+          rgba(5,15,27,.84)
+        ),
+        url("https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2200&q=90")
+        center/cover;
+
+      color: white;
     }
 
     .app-section.active {
       display: block;
     }
 
+    /* top bar */
+
     .app-section-top {
-      padding: 28px 24px;
+      position: relative;
+      z-index: 10;
 
-      background: #0b1726;
+      border-bottom: 1px solid rgba(255,255,255,.13);
 
-      color: white;
+      background: rgba(4,13,24,.84);
+
+      backdrop-filter: blur(15px);
     }
 
     .app-section-top-inner {
-      max-width: 1050px;
+      max-width: 1180px;
+
+      min-height: 78px;
+
       margin: auto;
+
+      padding: 0 24px;
 
       display: flex;
       align-items: center;
       justify-content: space-between;
+    }
 
-      gap: 20px;
+    .app-section-top strong {
+      font-size: 17px;
+      letter-spacing: .2px;
     }
 
     .back-home {
+      padding: 11px 17px;
+
       border: 1px solid rgba(255,255,255,.25);
-
-      background: rgba(255,255,255,.07);
-
-      color: white;
 
       border-radius: 7px;
 
-      padding: 10px 15px;
+      background: rgba(255,255,255,.06);
+
+      color: white;
 
       cursor: pointer;
 
@@ -354,41 +385,305 @@
     }
 
     .back-home:hover {
-      background: rgba(255,255,255,.14);
+      border-color: var(--pm-gold);
+
+      color: var(--pm-gold2);
     }
 
+    /* inside content */
+
     .app-inner {
-      max-width: 950px;
+      max-width: 1080px;
 
       margin: auto;
 
-      padding: 65px 24px;
+      padding: 75px 24px 120px;
+
+      position: relative;
+      z-index: 5;
     }
 
     .app-title {
-      margin-bottom: 35px;
+      max-width: 760px;
+
+      margin-bottom: 38px;
     }
 
     .app-title small {
-      color: #c9a46a;
+      color: var(--pm-gold2);
 
       font-size: 10px;
       font-weight: 950;
-      letter-spacing: 2px;
+
+      letter-spacing: 2.8px;
     }
 
     .app-title h2 {
-      margin: 10px 0;
+      margin: 13px 0;
 
-      color: #0b1726;
+      color: white;
 
-      font-size: 42px;
-      line-height: 1.05;
+      font-size: clamp(38px,5vw,58px);
+
+      line-height: 1.04;
+
+      letter-spacing: -2px;
     }
 
     .app-title p {
-      color: #6c7785;
+      margin: 0;
+
+      color: rgba(255,255,255,.68);
+
+      font-size: 16px;
+      line-height: 1.6;
     }
+
+    /* =====================================================
+       FORM CARD
+    ===================================================== */
+
+    .pm-form-card {
+      padding: 38px;
+
+      border: 1px solid rgba(255,255,255,.16);
+
+      border-radius: 18px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,.13),
+          rgba(255,255,255,.045)
+        );
+
+      backdrop-filter: blur(18px);
+
+      box-shadow:
+        0 30px 90px rgba(0,0,0,.35);
+    }
+
+    .pm-form-grid {
+      display: grid;
+
+      grid-template-columns: 1fr 1fr;
+
+      gap: 25px;
+    }
+
+    .pm-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pm-field-full {
+      grid-column: 1 / -1;
+    }
+
+    .pm-field label {
+      margin-bottom: 10px;
+
+      color: var(--pm-gold2);
+
+      font-size: 12px;
+      font-weight: 900;
+
+      letter-spacing: .3px;
+    }
+
+    .pm-field input,
+    .pm-field select,
+    .pm-field textarea {
+      width: 100%;
+
+      min-height: 52px;
+
+      padding: 14px 16px;
+
+      border: 1px solid rgba(255,255,255,.18);
+
+      border-radius: 8px;
+
+      outline: none;
+
+      background: rgba(255,255,255,.09);
+
+      color: white;
+
+      font-size: 15px;
+
+      transition: .2s ease;
+    }
+
+    .pm-field select option {
+      background: var(--pm-navy);
+      color: white;
+    }
+
+    .pm-field input::placeholder,
+    .pm-field textarea::placeholder {
+      color: rgba(255,255,255,.42);
+    }
+
+    .pm-field input:focus,
+    .pm-field select:focus,
+    .pm-field textarea:focus {
+      border-color: var(--pm-gold);
+
+      background: rgba(255,255,255,.13);
+
+      box-shadow:
+        0 0 0 3px rgba(201,164,106,.12);
+    }
+
+    .pm-field textarea {
+      min-height: 130px;
+
+      resize: vertical;
+    }
+
+    /* =====================================================
+       PHONE
+    ===================================================== */
+
+    .pm-phone-wrap {
+      width: 100%;
+
+      display: flex;
+      align-items: stretch;
+    }
+
+    .pm-phone-prefix {
+      min-width: 76px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border: 1px solid rgba(255,255,255,.18);
+
+      border-right: 0;
+
+      border-radius: 8px 0 0 8px;
+
+      background: rgba(201,164,106,.18);
+
+      color: var(--pm-gold2);
+
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .pm-phone-wrap input {
+      border-radius: 0 8px 8px 0 !important;
+    }
+
+    /* =====================================================
+       SUBMIT BUTTON
+    ===================================================== */
+
+    .pm-form-submit {
+      width: 100%;
+
+      min-height: 56px;
+
+      margin-top: 28px;
+
+      border: 0;
+
+      border-radius: 8px;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--pm-gold),
+          var(--pm-gold2)
+        );
+
+      color: var(--pm-navy);
+
+      cursor: pointer;
+
+      font-size: 13px;
+      font-weight: 950;
+
+      letter-spacing: 1px;
+
+      box-shadow:
+        0 12px 30px rgba(0,0,0,.25);
+
+      transition: .2s ease;
+    }
+
+    .pm-form-submit:hover {
+      transform: translateY(-2px);
+
+      box-shadow:
+        0 17px 38px rgba(0,0,0,.32);
+    }
+
+    #requestMsg,
+    #propertyMsg {
+      margin-top: 20px;
+
+      padding: 12px;
+
+      border-radius: 7px;
+
+      color: white;
+
+      font-size: 14px;
+    }
+
+    /* =====================================================
+       RESULT / MATCH AREA
+    ===================================================== */
+
+    .match-card {
+      margin-top: 22px;
+
+      padding: 26px;
+
+      border: 1px solid rgba(255,255,255,.15);
+
+      border-radius: 14px;
+
+      background: rgba(255,255,255,.08);
+
+      backdrop-filter: blur(12px);
+    }
+
+    .match-card h3 {
+      color: var(--pm-gold2);
+    }
+
+    .match-card button {
+      padding: 12px 18px;
+
+      border: 0;
+
+      border-radius: 7px;
+
+      background: var(--pm-gold);
+
+      color: var(--pm-navy);
+
+      cursor: pointer;
+
+      font-weight: 900;
+    }
+
+    /* =====================================================
+       STATUS
+    ===================================================== */
+
+    #statusResult {
+      margin-top: 25px;
+    }
+
+    /* =====================================================
+       MOBILE
+    ===================================================== */
 
     @media(max-width:800px) {
 
@@ -402,6 +697,7 @@
 
       .choice-content h1 {
         font-size: 49px;
+
         letter-spacing: -2px;
       }
 
@@ -415,6 +711,22 @@
 
       .choice-card {
         min-height: 215px;
+      }
+
+      .pm-form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pm-field-full {
+        grid-column: auto;
+      }
+
+      .pm-form-card {
+        padding: 25px;
+      }
+
+      .app-inner {
+        padding-top: 55px;
       }
     }
 
@@ -436,15 +748,38 @@
       .choice-card {
         padding: 25px;
       }
+
+      .app-section-top-inner {
+        padding: 0 18px;
+      }
+
+      .app-inner {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .app-title h2 {
+        font-size: 38px;
+      }
+
+      .pm-form-card {
+        padding: 21px;
+      }
+
+      .pm-field input,
+      .pm-field select,
+      .pm-field textarea {
+        font-size: 16px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- =========================
-       CHOICE / LANDING PAGE
-  ========================== -->
+  <!-- =====================================================
+       FIRST PAGE — DO NOT CHANGE
+  ====================================================== -->
 
   <section id="choicePage" class="choice-page">
 
@@ -490,8 +825,6 @@
 
       <div class="choice-cards">
 
-        <!-- FIND PROPERTY -->
-
         <div
           class="choice-card"
           onclick="openSection('findProperty')"
@@ -520,8 +853,6 @@
 
         </div>
 
-
-        <!-- SUBMIT PROPERTY -->
 
         <div
           class="choice-card"
@@ -569,21 +900,18 @@
   </section>
 
 
-  <!-- =========================
+  <!-- =====================================================
        FIND PROPERTY
-  ========================== -->
+  ====================================================== -->
 
-  <section
-    id="findProperty"
-    class="app-section"
-  >
+  <section id="findProperty" class="app-section">
 
     <div class="app-section-top">
 
       <div class="app-section-top-inner">
 
         <strong>
-          PropertyMatch Abu Dhabi
+          PropertyMatch · Abu Dhabi
         </strong>
 
         <button
@@ -611,7 +939,8 @@
         </h2>
 
         <p>
-          We'll search for properties that match your requirements.
+          Give us your requirements and we'll find the closest
+          property matches for you.
         </p>
 
       </div>
@@ -624,6 +953,7 @@
           <div class="pm-form-grid">
 
             <div class="pm-field">
+
               <label>Your Name</label>
 
               <input
@@ -632,6 +962,7 @@
                 placeholder="Your full name"
                 required
               >
+
             </div>
 
 
@@ -789,7 +1120,7 @@
 
               <textarea
                 name="requirements"
-                placeholder="Tell us anything important about the property you need..."
+                placeholder="Anything else you need..."
               ></textarea>
 
             </div>
@@ -815,21 +1146,18 @@
   </section>
 
 
-  <!-- =========================
+  <!-- =====================================================
        SUBMIT PROPERTY
-  ========================== -->
+  ====================================================== -->
 
-  <section
-    id="submitProperty"
-    class="app-section"
-  >
+  <section id="submitProperty" class="app-section">
 
     <div class="app-section-top">
 
       <div class="app-section-top-inner">
 
         <strong>
-          PropertyMatch Abu Dhabi
+          PropertyMatch · Abu Dhabi
         </strong>
 
         <button
@@ -857,7 +1185,8 @@
         </h2>
 
         <p>
-          Submit your property details for verification and matching.
+          Submit your property details. After verification,
+          our matching system can connect it with suitable requests.
         </p>
 
       </div>
@@ -1091,7 +1420,8 @@
 
       document.getElementById("choicePage").style.display = "none";
 
-      document.querySelectorAll(".app-section")
+      document
+        .querySelectorAll(".app-section")
         .forEach(section => {
           section.classList.remove("active");
         });
@@ -1100,18 +1430,19 @@
 
       if (section) {
         section.classList.add("active");
-
-        window.scrollTo({
-          top: 0,
-          behavior: "instant"
-        });
       }
+
+      window.scrollTo({
+        top: 0,
+        behavior: "instant"
+      });
     }
 
 
     function backHome() {
 
-      document.querySelectorAll(".app-section")
+      document
+        .querySelectorAll(".app-section")
         .forEach(section => {
           section.classList.remove("active");
         });
@@ -1122,7 +1453,6 @@
         top: 0,
         behavior: "instant"
       });
-
     }
 
   </script>
