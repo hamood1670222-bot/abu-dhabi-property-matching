@@ -2,725 +2,884 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>PropertyMatch Abu Dhabi</title>
 
-  <link rel="stylesheet" href="style.css?v=30">
+  <link rel="stylesheet" href="style.css?v=31">
 </head>
 
 <body>
 
-  <!-- NAVIGATION -->
-  <header class="pm-nav">
-    <div class="pm-nav-inner">
+<header class="pm-nav">
+  <div class="pm-nav-inner">
 
-      <a href="#" class="pm-logo">
-        <span class="pm-logo-mark">PM</span>
-        <span>
-          <strong>PropertyMatch</strong>
-          <small>ABU DHABI</small>
-        </span>
+    <a href="#" class="pm-logo">
+      <span class="pm-logo-mark">PM</span>
+
+      <span>
+        <strong>PropertyMatch</strong>
+        <small>ABU DHABI</small>
+      </span>
+    </a>
+
+    <nav class="pm-menu">
+      <a href="#search">Find Property</a>
+      <a href="#status">Check Status</a>
+      <a href="#property" class="pm-submit-nav">
+        Submit Property
+      </a>
+    </nav>
+
+  </div>
+</header>
+
+
+<main>
+
+<!-- HERO -->
+
+<section class="pm-hero">
+
+  <div class="pm-hero-content">
+
+    <div class="pm-eyebrow">
+      ABU DHABI PROPERTY MATCHING
+    </div>
+
+    <h1>
+      Find the right property.
+      <span>Faster.</span>
+    </h1>
+
+    <p>
+      Tell us what you're looking for and we'll match you
+      with suitable properties.
+    </p>
+
+    <div class="pm-hero-buttons">
+
+      <a href="#search" class="pm-btn pm-btn-primary">
+        Find a Property
       </a>
 
-      <nav class="pm-menu">
-        <a href="#how-it-works">How It Works</a>
-        <a href="#status">Check Status</a>
-        <a href="#property" class="pm-submit-nav">
-          Submit Property
-        </a>
-      </nav>
+      <a href="#property" class="pm-btn pm-btn-outline">
+        Submit Your Property
+      </a>
 
     </div>
-  </header>
+
+  </div>
+
+</section>
 
 
-  <!-- HERO -->
-  <main>
+<!-- TWO OPTIONS -->
 
-    <section class="pm-hero">
+<section class="pm-options">
 
-      <div class="pm-hero-content">
+  <div class="pm-option">
 
-        <div class="pm-eyebrow">
-          ABU DHABI PROPERTY MATCHING
+    <div class="pm-option-icon">
+      ⌕
+    </div>
+
+    <div>
+
+      <span class="pm-option-label">
+        LOOKING FOR A PROPERTY?
+      </span>
+
+      <h2>
+        Find your match
+      </h2>
+
+      <p>
+        Tell us your preferred location, property type,
+        budget and requirements.
+      </p>
+
+      <a href="#search">
+        Start Searching →
+      </a>
+
+    </div>
+
+  </div>
+
+
+  <div class="pm-option pm-option-owner">
+
+    <div class="pm-option-icon">
+      ⌂
+    </div>
+
+    <div>
+
+      <span class="pm-option-label">
+        HAVE A PROPERTY?
+      </span>
+
+      <h2>
+        Submit your property
+      </h2>
+
+      <p>
+        Add your property and let our matching system
+        connect it with suitable customers.
+      </p>
+
+      <a href="#property">
+        Submit Property →
+      </a>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- CUSTOMER SEARCH -->
+
+<section id="search" class="pm-section">
+
+  <div class="pm-section-heading">
+
+    <span class="pm-eyebrow">
+      FIND YOUR MATCH
+    </span>
+
+    <h2>
+      What are you looking for?
+    </h2>
+
+    <p>
+      Give us your requirements and we'll search
+      for matching properties.
+    </p>
+
+  </div>
+
+
+  <div class="pm-form-card">
+
+    <form id="rf">
+
+      <div class="pm-form-grid">
+
+        <div class="pm-field">
+
+          <label for="name">
+            Full Name
+          </label>
+
+          <input
+            id="name"
+            name="name"
+            type="text"
+            placeholder="Your name"
+            required
+          >
+
         </div>
 
-        <h1>
-          Find the right property.
-          <span>Faster.</span>
-        </h1>
 
-        <p>
-          Tell us what you're looking for and we'll match you
-          with suitable properties.
+        <div class="pm-field">
+
+          <label for="phone">
+            Phone
+          </label>
+
+          <div class="pm-phone-wrap">
+
+            <span class="pm-phone-prefix">
+              00971
+            </span>
+
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              inputmode="numeric"
+              placeholder="50 123 4567"
+              required
+            >
+
+          </div>
+
+        </div>
+
+
+        <div class="pm-field">
+
+          <label for="email">
+            Email
+          </label>
+
+          <input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+          >
+
+        </div>
+
+
+        <div class="pm-field">
+
+          <label for="location">
+            Preferred Location
+          </label>
+
+          <input
+            id="location"
+            name="areas"
+            type="text"
+            placeholder="Yas Island, Saadiyat..."
+            required
+          >
+
+        </div>
+
+
+        <div class="pm-field">
+
+          <label for="property_type">
+            Property Type
+          </label>
+
+          <select
+            id="property_type"
+            name="property_type"
+            required
+          >
+
+            <option value="">
+              Select property type
+            </option>
+
+            <option value="Apartment">
+              Apartment
+            </option>
+
+            <option value="Villa">
+              Villa
+            </option>
+
+            <option value="Townhouse">
+              Townhouse
+            </option>
+
+            <option value="Penthouse">
+              Penthouse
+            </option>
+
+            <option value="Office">
+              Office
+            </option>
+
+            <option value="Commercial">
+              Commercial
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="pm-field">
+
+          <label for="budget">
+            Maximum Budget
+          </label>
+
+          <input
+            id="budget"
+            name="budget_max"
+            type="number"
+            placeholder="AED"
+            required
+          >
+
+        </div>
+
+
+        <div class="pm-field">
+
+          <label for="bedrooms">
+            Bedrooms
+          </label>
+
+          <select
+            id="bedrooms"
+            name="bedrooms"
+            required
+          >
+
+            <option value="">
+              Select
+            </option>
+
+            <option value="0">
+              Studio
+            </option>
+
+            <option value="1">
+              1 Bedroom
+            </option>
+
+            <option value="2">
+              2 Bedrooms
+            </option>
+
+            <option value="3">
+              3 Bedrooms
+            </option>
+
+            <option value="4">
+              4 Bedrooms
+            </option>
+
+            <option value="5">
+              5+ Bedrooms
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="pm-field pm-field-full">
+
+          <label for="notes">
+            Additional Requirements
+          </label>
+
+          <textarea
+            id="notes"
+            name="requirements"
+            rows="4"
+            placeholder="Tell us anything else you need..."
+          ></textarea>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="submit"
+        class="pm-form-submit"
+      >
+        FIND MY MATCHES
+      </button>
+
+      <div id="requestMsg"></div>
+
+    </form>
+
+  </div>
+
+</section>
+
+
+<!-- HOW IT WORKS -->
+
+<section id="how-it-works" class="pm-how">
+
+  <div class="pm-section-heading">
+
+    <span class="pm-eyebrow">
+      HOW IT WORKS
+    </span>
+
+    <h2>
+      Property matching made simple.
+    </h2>
+
+  </div>
+
+
+  <div class="pm-steps">
+
+    <div class="pm-step">
+
+      <span>01</span>
+
+      <h3>
+        Tell us your needs
+      </h3>
+
+      <p>
+        Submit your property requirements,
+        budget and preferred location.
+      </p>
+
+    </div>
+
+
+    <div class="pm-step">
+
+      <span>02</span>
+
+      <h3>
+        Get matched
+      </h3>
+
+      <p>
+        Our matching system compares your
+        requirements with available properties.
+      </p>
+
+    </div>
+
+
+    <div class="pm-step">
+
+      <span>03</span>
+
+      <h3>
+        Connect
+      </h3>
+
+      <p>
+        Request a suitable property and
+        our team can connect you.
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- PROPERTY OWNER -->
+
+<section id="property" class="pm-owner">
+
+  <div class="pm-owner-inner">
+
+    <div class="pm-owner-copy">
+
+      <span class="pm-eyebrow">
+        PROPERTY OWNERS
+      </span>
+
+      <h2>
+        Have a property?
+        <br>
+        Put it in front of
+        <span>the right customer.</span>
+      </h2>
+
+      <p>
+        Submit your property details and our
+        matching system can identify customers
+        whose requirements fit your property.
+      </p>
+
+    </div>
+
+
+    <div class="pm-form-card pm-owner-form">
+
+      <form id="pf">
+
+        <h3>
+          Submit Your Property
+        </h3>
+
+        <p class="pm-form-intro">
+          Add your property details below.
         </p>
 
-        <div class="pm-hero-buttons">
 
-          <a href="#search" class="pm-btn pm-btn-primary">
-            Find a Property
-          </a>
-
-          <a href="#property" class="pm-btn pm-btn-outline">
-            Submit Your Property
-          </a>
-
-        </div>
-
-      </div>
-
-    </section>
+        <div class="pm-form-grid">
 
 
-    <!-- TWO MAIN OPTIONS -->
-    <section class="pm-options">
+          <!-- OWNER NAME -->
 
-      <div class="pm-option">
+          <div class="pm-field">
 
-        <div class="pm-option-icon">⌕</div>
+            <label for="owner_name">
+              Owner Name
+            </label>
 
-        <div>
-          <span class="pm-option-label">
-            LOOKING FOR A PROPERTY?
-          </span>
+            <input
+              id="owner_name"
+              name="owner_name"
+              type="text"
+              placeholder="Your full name"
+              required
+            >
 
-          <h2>
-            Find your match
-          </h2>
-
-          <p>
-            Tell us your preferred location, property type,
-            budget and requirements.
-          </p>
-
-          <a href="#search">
-            Start Searching →
-          </a>
-        </div>
-
-      </div>
+          </div>
 
 
-      <div class="pm-option pm-option-owner">
+          <!-- OWNER PHONE -->
 
-        <div class="pm-option-icon">⌂</div>
+          <div class="pm-field">
 
-        <div>
-          <span class="pm-option-label">
-            HAVE A PROPERTY?
-          </span>
+            <label for="owner_phone">
+              Phone
+            </label>
 
-          <h2>
-            Submit your property
-          </h2>
+            <div class="pm-phone-wrap">
 
-          <p>
-            Add your property and let our matching system
-            connect it with suitable customers.
-          </p>
-
-          <a href="#property">
-            Submit Property →
-          </a>
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- SEARCH -->
-    <section id="search" class="pm-section">
-
-      <div class="pm-section-heading">
-
-        <span class="pm-eyebrow">
-          FIND YOUR MATCH
-        </span>
-
-        <h2>
-          What are you looking for?
-        </h2>
-
-        <p>
-          Give us your requirements and we'll search
-          for matching properties.
-        </p>
-
-      </div>
-
-
-      <div class="pm-form-card">
-
-        <form id="rf">
-
-          <div class="pm-form-grid">
-
-            <div class="pm-field">
-              <label for="name">
-                Full Name
-              </label>
+              <span class="pm-phone-prefix">
+                00971
+              </span>
 
               <input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Your name"
-                required
-              >
-            </div>
-
-
-            <div class="pm-field">
-              <label for="phone">
-                Phone
-              </label>
-
-              <input
-                id="phone"
+                id="owner_phone"
                 name="phone"
                 type="tel"
-                placeholder="+971..."
+                inputmode="numeric"
+                placeholder="50 123 4567"
                 required
               >
-            </div>
 
-
-            <div class="pm-field">
-              <label for="email">
-                Email
-              </label>
-
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-              >
-            </div>
-
-
-            <div class="pm-field">
-              <label for="location">
-                Preferred Location
-              </label>
-
-              <input
-                id="location"
-                name="location"
-                type="text"
-                placeholder="Abu Dhabi, Yas Island..."
-                required
-              >
-            </div>
-
-
-            <div class="pm-field">
-              <label for="property_type">
-                Property Type
-              </label>
-
-              <select
-                id="property_type"
-                name="property_type"
-                required
-              >
-                <option value="">
-                  Select property type
-                </option>
-
-                <option value="Apartment">
-                  Apartment
-                </option>
-
-                <option value="Villa">
-                  Villa
-                </option>
-
-                <option value="Townhouse">
-                  Townhouse
-                </option>
-
-                <option value="Penthouse">
-                  Penthouse
-                </option>
-
-                <option value="Office">
-                  Office
-                </option>
-
-                <option value="Commercial">
-                  Commercial
-                </option>
-              </select>
-            </div>
-
-
-            <div class="pm-field">
-              <label for="budget">
-                Maximum Budget
-              </label>
-
-              <input
-                id="budget"
-                name="budget"
-                type="number"
-                placeholder="AED"
-                required
-              >
-            </div>
-
-
-            <div class="pm-field">
-              <label for="bedrooms">
-                Bedrooms
-              </label>
-
-              <select
-                id="bedrooms"
-                name="bedrooms"
-                required
-              >
-                <option value="">
-                  Select
-                </option>
-
-                <option value="Studio">
-                  Studio
-                </option>
-
-                <option value="1">
-                  1 Bedroom
-                </option>
-
-                <option value="2">
-                  2 Bedrooms
-                </option>
-
-                <option value="3">
-                  3 Bedrooms
-                </option>
-
-                <option value="4">
-                  4 Bedrooms
-                </option>
-
-                <option value="5+">
-                  5+ Bedrooms
-                </option>
-              </select>
-            </div>
-
-
-            <div class="pm-field pm-field-full">
-              <label for="notes">
-                Additional Requirements
-              </label>
-
-              <textarea
-                id="notes"
-                name="notes"
-                rows="4"
-                placeholder="Tell us anything else you need..."
-              ></textarea>
             </div>
 
           </div>
 
 
-          <button
-            type="submit"
-            class="pm-form-submit"
-          >
-            FIND MY MATCHES
-          </button>
-
-          <div id="requestMsg"></div>
-
-        </form>
-
-      </div>
-
-    </section>
-
-
-    <!-- HOW IT WORKS -->
-    <section id="how-it-works" class="pm-how">
-
-      <div class="pm-section-heading">
-
-        <span class="pm-eyebrow">
-          HOW IT WORKS
-        </span>
-
-        <h2>
-          Property matching made simple.
-        </h2>
-
-      </div>
-
-
-      <div class="pm-steps">
-
-        <div class="pm-step">
-
-          <span>01</span>
-
-          <h3>
-            Tell us your needs
-          </h3>
-
-          <p>
-            Submit your property requirements,
-            budget and preferred location.
-          </p>
-
-        </div>
-
-
-        <div class="pm-step">
-
-          <span>02</span>
-
-          <h3>
-            Get matched
-          </h3>
-
-          <p>
-            Our matching system compares your
-            requirements with available properties.
-          </p>
-
-        </div>
-
-
-        <div class="pm-step">
-
-          <span>03</span>
-
-          <h3>
-            Connect
-          </h3>
-
-          <p>
-            Request a suitable property and
-            our team can connect you.
-          </p>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- PROPERTY OWNER -->
-    <section id="property" class="pm-owner">
-
-      <div class="pm-owner-inner">
-
-        <div class="pm-owner-copy">
-
-          <span class="pm-eyebrow">
-            PROPERTY OWNERS
-          </span>
-
-          <h2>
-            Have a property?
-            <br>
-            Put it in front of
-            <span>the right customer.</span>
-          </h2>
-
-          <p>
-            Submit your property details and our
-            matching system can identify customers
-            whose requirements fit your property.
-          </p>
-
-        </div>
-
-
-        <div class="pm-form-card pm-owner-form">
-
-          <form id="pf">
-
-            <h3>
-              Submit Your Property
-            </h3>
-
-            <p class="pm-form-intro">
-              Add your property details below.
-            </p>
-
-
-            <div class="pm-form-grid">
-
-              <div class="pm-field">
-                <label for="owner_name">
-                  Owner Name
-                </label>
-
-                <input
-                  id="owner_name"
-                  name="owner_name"
-                  type="text"
-                  placeholder="Your name"
-                  required
-                >
-              </div>
-
-
-              <div class="pm-field">
-                <label for="owner_phone">
-                  Phone
-                </label>
-
-                <input
-                  id="owner_phone"
-                  name="owner_phone"
-                  type="tel"
-                  placeholder="+971..."
-                  required
-                >
-              </div>
-
-
-              <div class="pm-field">
-                <label for="owner_email">
-                  Email
-                </label>
-
-                <input
-                  id="owner_email"
-                  name="owner_email"
-                  type="email"
-                  placeholder="you@example.com"
-                >
-              </div>
-
-
-              <div class="pm-field">
-                <label for="owner_location">
-                  Location
-                </label>
-
-                <input
-                  id="owner_location"
-                  name="location"
-                  type="text"
-                  placeholder="Abu Dhabi..."
-                  required
-                >
-              </div>
-
-
-              <div class="pm-field">
-                <label for="owner_property_type">
-                  Property Type
-                </label>
-
-                <select
-                  id="owner_property_type"
-                  name="property_type"
-                  required
-                >
-                  <option value="">
-                    Select type
-                  </option>
-
-                  <option value="Apartment">
-                    Apartment
-                  </option>
-
-                  <option value="Villa">
-                    Villa
-                  </option>
-
-                  <option value="Townhouse">
-                    Townhouse
-                  </option>
-
-                  <option value="Penthouse">
-                    Penthouse
-                  </option>
-
-                  <option value="Office">
-                    Office
-                  </option>
-
-                  <option value="Commercial">
-                    Commercial
-                  </option>
-                </select>
-              </div>
-
-
-              <div class="pm-field">
-                <label for="price">
-                  Price
-                </label>
-
-                <input
-                  id="price"
-                  name="price"
-                  type="number"
-                  placeholder="AED"
-                  required
-                >
-              </div>
-
-
-              <div class="pm-field">
-                <label for="owner_bedrooms">
-                  Bedrooms
-                </label>
-
-                <select
-                  id="owner_bedrooms"
-                  name="bedrooms"
-                  required
-                >
-                  <option value="">
-                    Select
-                  </option>
-
-                  <option value="Studio">
-                    Studio
-                  </option>
-
-                  <option value="1">
-                    1 Bedroom
-                  </option>
-
-                  <option value="2">
-                    2 Bedrooms
-                  </option>
-
-                  <option value="3">
-                    3 Bedrooms
-                  </option>
-
-                  <option value="4">
-                    4 Bedrooms
-                  </option>
-
-                  <option value="5+">
-                    5+ Bedrooms
-                  </option>
-                </select>
-              </div>
-
-
-              <div class="pm-field pm-field-full">
-                <label for="description">
-                  Property Description
-                </label>
-
-                <textarea
-                  id="description"
-                  name="description"
-                  rows="4"
-                  placeholder="Describe your property..."
-                ></textarea>
-              </div>
-
-            </div>
-
-
-            <button
-              type="submit"
-              class="pm-form-submit"
+          <!-- OWNER EMAIL -->
+
+          <div class="pm-field">
+
+            <label for="owner_email">
+              Email
+            </label>
+
+            <input
+              id="owner_email"
+              name="email"
+              type="email"
+              placeholder="you@example.com"
             >
-              SUBMIT PROPERTY
-            </button>
 
-            <div id="propertyMsg"></div>
+          </div>
 
-          </form>
+
+          <!-- LOCATION -->
+
+          <div class="pm-field">
+
+            <label for="owner_location">
+              Location
+            </label>
+
+            <input
+              id="owner_location"
+              name="area"
+              type="text"
+              placeholder="Yas Island, Saadiyat..."
+              required
+            >
+
+          </div>
+
+
+          <!-- PROPERTY TYPE -->
+
+          <div class="pm-field">
+
+            <label for="owner_property_type">
+              Property Type
+            </label>
+
+            <select
+              id="owner_property_type"
+              name="property_type"
+              required
+            >
+
+              <option value="">
+                Select property type
+              </option>
+
+              <option value="Apartment">
+                Apartment
+              </option>
+
+              <option value="Villa">
+                Villa
+              </option>
+
+              <option value="Townhouse">
+                Townhouse
+              </option>
+
+              <option value="Penthouse">
+                Penthouse
+              </option>
+
+              <option value="Office">
+                Office
+              </option>
+
+              <option value="Commercial">
+                Commercial
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- PRICE -->
+
+          <div class="pm-field">
+
+            <label for="price">
+              Price
+            </label>
+
+            <input
+              id="price"
+              name="price"
+              type="number"
+              placeholder="AED"
+              required
+            >
+
+          </div>
+
+
+          <!-- BEDROOMS -->
+
+          <div class="pm-field">
+
+            <label for="owner_bedrooms">
+              Bedrooms
+            </label>
+
+            <select
+              id="owner_bedrooms"
+              name="bedrooms"
+              required
+            >
+
+              <option value="">
+                Select
+              </option>
+
+              <option value="0">
+                Studio
+              </option>
+
+              <option value="1">
+                1 Bedroom
+              </option>
+
+              <option value="2">
+                2 Bedrooms
+              </option>
+
+              <option value="3">
+                3 Bedrooms
+              </option>
+
+              <option value="4">
+                4 Bedrooms
+              </option>
+
+              <option value="5">
+                5+ Bedrooms
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- DESCRIPTION -->
+
+          <div class="pm-field pm-field-full">
+
+            <label for="description">
+              Property Description
+            </label>
+
+            <textarea
+              id="description"
+              name="description"
+              rows="4"
+              placeholder="Describe your property..."
+            ></textarea>
+
+          </div>
+
 
         </div>
 
-      </div>
 
-    </section>
-
-
-    <!-- STATUS -->
-    <section id="status" class="pm-status">
-
-      <div class="pm-status-card">
-
-        <span class="pm-eyebrow">
-          REQUEST STATUS
-        </span>
-
-        <h2>
-          Already submitted a request?
-        </h2>
-
-        <p>
-          Enter your request ID to check your
-          latest matching status.
-        </p>
-
-
-        <form
-          id="requestStatusId"
-          onsubmit="return false;"
+        <button
+          type="submit"
+          class="pm-form-submit"
         >
+          SUBMIT PROPERTY
+        </button>
 
-          <input
-            id="requestId"
-            name="requestId"
-            type="text"
-            placeholder="Example: PM-20260908-00CC5D"
-          >
+        <div id="propertyMsg"></div>
 
-          <button
-            type="button"
-            onclick="checkRequestStatus()"
-          >
-            CHECK STATUS
-          </button>
-
-        </form>
-
-
-        <div id="statusResult"></div>
-
-      </div>
-
-    </section>
-
-  </main>
-
-
-  <!-- FOOTER -->
-  <footer class="pm-footer">
-
-    <div class="pm-footer-inner">
-
-      <div>
-        <strong>PropertyMatch</strong>
-        <span>Abu Dhabi</span>
-      </div>
-
-      <p>
-        Property matching made simple.
-      </p>
+      </form>
 
     </div>
 
-  </footer>
+  </div>
+
+</section>
 
 
-  <script src="app.js"></script>
+<!-- STATUS -->
+
+<section id="status" class="pm-status">
+
+  <div class="pm-status-card">
+
+    <span class="pm-eyebrow">
+      REQUEST STATUS
+    </span>
+
+    <h2>
+      Already submitted a request?
+    </h2>
+
+    <p>
+      Enter your Request ID to check your
+      latest matching status.
+    </p>
+
+
+    <form
+      id="requestStatusId"
+      onsubmit="return false;"
+    >
+
+      <input
+        id="requestId"
+        name="requestId"
+        type="text"
+        placeholder="PM-20260908-00CC5D"
+      >
+
+      <button
+        type="button"
+        onclick="checkRequestStatus()"
+      >
+        CHECK STATUS
+      </button>
+
+    </form>
+
+
+    <div id="statusResult"></div>
+
+  </div>
+
+</section>
+
+</main>
+
+
+<!-- FOOTER -->
+
+<footer class="pm-footer">
+
+  <div class="pm-footer-inner">
+
+    <div>
+
+      <strong>
+        PropertyMatch
+      </strong>
+
+      <span>
+        ABU DHABI
+      </span>
+
+    </div>
+
+    <p>
+      Property matching made simple.
+    </p>
+
+  </div>
+
+</footer>
+
+
+<!-- PHONE FIX -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  function setupPhone(prefixId, inputId, formId) {
+
+    const input = document.getElementById(inputId);
+    const form = document.getElementById(formId);
+
+    if (!input || !form) return;
+
+    input.addEventListener("input", function () {
+
+      let value = this.value.replace(/\D/g, "");
+
+      if (value.startsWith("00971")) {
+        value = value.substring(5);
+      }
+
+      if (value.startsWith("971")) {
+        value = value.substring(3);
+      }
+
+      this.value = value;
+
+    });
+
+
+    form.addEventListener("submit", function () {
+
+      let value = input.value.replace(/\D/g, "");
+
+      if (value.startsWith("00971")) {
+        value = value.substring(5);
+      }
+
+      if (value.startsWith("971")) {
+        value = value.substring(3);
+      }
+
+      input.value = "00971" + value;
+
+    });
+
+  }
+
+
+  setupPhone(
+    "customer-phone-prefix",
+    "phone",
+    "rf"
+  );
+
+
+  setupPhone(
+    "owner-phone-prefix",
+    "owner_phone",
+    "pf"
+  );
+
+});
+</script>
+
+
+<script src="app.js"></script>
 
 </body>
 </html>
