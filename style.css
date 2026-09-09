@@ -1,18 +1,15 @@
-/* =========================================================
-   PROPERTYMATCH ABU DHABI
-   PREMIUM REAL ESTATE UI
-   ========================================================= */
-
 :root {
-  --green: #0b302b;
-  --green-2: #12483f;
-  --gold: #b58a50;
-  --gold-light: #d4b47b;
-  --cream: #f6f2ea;
+  --green: #123c35;
+  --green-dark: #092a25;
+  --green-light: #1d574d;
+  --gold: #c49a61;
+  --gold-light: #e1c28f;
+  --cream: #f7f4ee;
   --white: #ffffff;
-  --ink: #142522;
-  --muted: #707b77;
-  --line: #e5dfd4;
+  --black: #14201e;
+  --muted: #697572;
+  --border: #e3e7e4;
+  --shadow: 0 20px 60px rgba(10, 35, 30, 0.12);
 }
 
 * {
@@ -25,116 +22,200 @@ html {
 
 body {
   margin: 0;
-  background: var(--cream);
-  color: var(--ink);
   font-family: Arial, Helvetica, sans-serif;
+  color: var(--black);
+  background: var(--white);
   line-height: 1.6;
 }
 
-/* =========================================================
-   NAV
-   ========================================================= */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+
+/* =========================
+   NAVIGATION
+========================= */
 
 .pm-nav {
-  height: 78px;
-  padding: 0 6%;
-  background: rgba(255,255,255,.96);
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   position: sticky;
   top: 0;
   z-index: 1000;
+  background: rgba(255, 255, 255, 0.97);
+  border-bottom: 1px solid var(--border);
+}
+
+.pm-nav-inner {
+  max-width: 1200px;
+  margin: auto;
+  min-height: 78px;
+  padding: 0 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
 }
 
 .pm-logo {
-  color: var(--green);
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -1px;
-}
-
-.pm-logo span {
-  color: var(--gold);
-}
-
-.pm-nav-btn {
-  background: var(--green);
-  color: white;
-  border: 0;
-  padding: 13px 23px;
-  border-radius: 4px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-/* =========================================================
-   HERO
-   ========================================================= */
-
-.pm-hero {
-  min-height: 690px;
-  position: relative;
-  overflow: hidden;
   display: flex;
   align-items: center;
-  padding: 90px 6%;
-  color: white;
+  gap: 12px;
+}
+
+.pm-logo-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--green);
+  color: var(--white);
+
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.pm-logo strong {
+  display: block;
+  font-size: 18px;
+  letter-spacing: -0.3px;
+}
+
+.pm-logo small {
+  display: block;
+  margin-top: 1px;
+
+  color: var(--gold);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.pm-menu {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.pm-menu > a:not(.pm-submit-nav) {
+  color: #50605d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pm-menu > a:not(.pm-submit-nav):hover {
+  color: var(--green);
+}
+
+.pm-submit-nav {
+  padding: 12px 20px;
+  border-radius: 6px;
+
+  background: var(--green);
+  color: var(--white);
+
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.pm-submit-nav:hover {
+  background: var(--green-light);
+}
+
+
+/* =========================
+   HERO
+========================= */
+
+.pm-hero {
+  min-height: 610px;
+
+  display: flex;
+  align-items: center;
+
   background:
     linear-gradient(
-      105deg,
-      rgba(5,34,30,.98) 0%,
-      rgba(8,53,47,.93) 48%,
-      rgba(12,63,55,.73) 100%
+      110deg,
+      rgba(7, 35, 30, 0.98),
+      rgba(13, 60, 52, 0.94)
     );
+
+  position: relative;
+  overflow: hidden;
 }
 
 .pm-hero::before {
   content: "";
   position: absolute;
-  width: 650px;
-  height: 650px;
+
+  width: 600px;
+  height: 600px;
+
+  right: -220px;
+  top: -250px;
+
+  border: 1px solid rgba(255,255,255,0.09);
   border-radius: 50%;
-  right: -180px;
-  top: -190px;
-  border: 1px solid rgba(255,255,255,.13);
 }
 
 .pm-hero::after {
   content: "";
   position: absolute;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
+
+  width: 400px;
+  height: 400px;
+
   right: 80px;
-  bottom: -250px;
-  border: 1px solid rgba(181,138,80,.25);
+  bottom: -300px;
+
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 50%;
 }
 
-.pm-hero-inner {
-  width: 100%;
-  max-width: 1200px;
+.pm-hero-content {
+  width: 1200px;
+  max-width: calc(100% - 56px);
   margin: auto;
+
+  padding: 90px 0 130px;
+
   position: relative;
   z-index: 2;
 }
 
-.pm-tag {
-  color: var(--gold-light);
-  font-size: 12px;
-  letter-spacing: 3px;
-  font-weight: 900;
-  margin-bottom: 25px;
+.pm-eyebrow {
+  display: inline-block;
+
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
 }
 
 .pm-hero h1 {
-  max-width: 900px;
-  margin: 0;
-  font-size: clamp(55px, 8vw, 98px);
-  line-height: .91;
-  letter-spacing: -5px;
-  font-weight: 900;
+  max-width: 760px;
+  margin: 20px 0;
+
+  color: var(--white);
+
+  font-size: clamp(46px, 6vw, 76px);
+  line-height: 1.02;
+  letter-spacing: -3px;
+  font-weight: 700;
 }
 
 .pm-hero h1 span {
@@ -142,444 +223,582 @@ body {
 }
 
 .pm-hero p {
-  max-width: 650px;
-  margin: 32px 0;
-  color: rgba(255,255,255,.75);
+  max-width: 600px;
+  margin: 0;
+
+  color: rgba(255,255,255,0.76);
+
   font-size: 18px;
-  line-height: 1.75;
+  line-height: 1.7;
 }
 
-.pm-actions {
+.pm-hero-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
+  margin-top: 34px;
 }
 
-.pm-actions button {
-  padding: 16px 25px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 900;
-  cursor: pointer;
-}
+.pm-btn {
+  min-height: 52px;
+  padding: 0 26px;
 
-.pm-primary {
-  border: 1px solid var(--gold);
-  background: var(--gold);
-  color: white;
-}
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-.pm-secondary {
-  border: 1px solid rgba(255,255,255,.4);
-  background: transparent;
-  color: white;
-}
+  border-radius: 5px;
 
-/* =========================================================
-   STATS
-   ========================================================= */
-
-.pm-stats {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  background: white;
-  border-bottom: 1px solid var(--line);
-}
-
-.pm-stat {
-  padding: 30px 6%;
-  border-right: 1px solid var(--line);
-}
-
-.pm-stat:last-child {
-  border-right: 0;
-}
-
-.pm-stat strong {
-  display: block;
-  color: var(--green);
-  font-size: 26px;
-  font-weight: 900;
-}
-
-.pm-stat span {
-  color: var(--muted);
   font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
 }
 
-/* =========================================================
-   MAIN SECTIONS
-   ========================================================= */
-
-.pm-section,
-.pm-how {
-  max-width: 1200px;
-  margin: auto;
-  padding: 100px 6%;
+.pm-btn-primary {
+  background: var(--gold);
+  color: var(--white);
 }
 
-.pm-section-label {
-  color: var(--gold);
-  font-size: 11px;
-  letter-spacing: 2.5px;
-  font-weight: 900;
-  margin-bottom: 14px;
+.pm-btn-primary:hover {
+  background: #aa814d;
 }
 
-.pm-section h2,
-.pm-how > h2 {
-  color: var(--green);
-  font-size: clamp(42px, 5vw, 68px);
-  line-height: .98;
-  letter-spacing: -3px;
-  margin: 0 0 20px;
+.pm-btn-outline {
+  border: 1px solid rgba(255,255,255,0.45);
+  color: var(--white);
 }
 
-.pm-section-intro {
-  max-width: 650px;
-  color: var(--muted);
-  font-size: 17px;
-  margin-bottom: 45px;
+.pm-btn-outline:hover {
+  background: rgba(255,255,255,0.1);
 }
 
-/* =========================================================
-   SEARCH BOX
-   ========================================================= */
 
-.pm-search-box {
-  background: white;
-  padding: 42px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 25px 70px rgba(23,40,36,.09);
-}
+/* =========================
+   MAIN OPTIONS
+========================= */
 
-.pm-search-box h3 {
-  color: var(--green);
-  font-size: 29px;
-  margin: 0 0 5px;
-}
+.pm-options {
+  max-width: 1100px;
+  margin: -70px auto 0;
+  padding: 0 28px;
 
-.pm-search-box > p {
-  color: var(--muted);
-  margin: 0 0 28px;
-}
+  position: relative;
+  z-index: 10;
 
-#rf,
-#pf {
-  display: grid;
-  gap: 3px;
-}
-
-#rf input,
-#rf select,
-#rf textarea,
-#pf input,
-#pf select,
-#pf textarea,
-#requestStatusId {
-  width: 100%;
-  padding: 15px;
-  margin: 0 0 12px;
-  border: 1px solid #dcded9;
-  border-radius: 5px;
-  background: #fbfcfa;
-  color: var(--ink);
-  font-size: 15px;
-  outline: none;
-}
-
-#rf input:focus,
-#rf select:focus,
-#rf textarea:focus,
-#pf input:focus,
-#pf select:focus,
-#pf textarea:focus,
-#requestStatusId:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(11,48,43,.08);
-  background: white;
-}
-
-#rf textarea,
-#pf textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
-#rf button,
-#pf button {
-  width: 100%;
-  margin-top: 7px;
-  padding: 16px;
-  border: 0;
-  border-radius: 5px;
-  background: var(--green);
-  color: white;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-#rf button:hover,
-#pf button:hover {
-  background: var(--green-2);
-}
-
-/* =========================================================
-   OWNER / STATUS
-   ========================================================= */
-
-.pm-split {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px 6% 100px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 25px;
-}
-
-.pm-card {
-  background: white;
-  padding: 38px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 15px 45px rgba(23,40,36,.06);
-}
-
-.pm-card h3 {
-  color: var(--green);
-  font-size: 30px;
-  margin: 0 0 8px;
-  letter-spacing: -1px;
-}
-
-.pm-card p {
-  color: var(--muted);
-}
-
-#propertyMsg,
-#requestMsg,
-#statusResult {
-  margin-top: 14px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-/* =========================================================
-   HOW IT WORKS
-   ========================================================= */
-
-.pm-steps {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
   gap: 20px;
-  margin-top: 45px;
 }
 
-.pm-step {
-  min-height: 230px;
-  padding: 32px;
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  position: relative;
+.pm-option {
+  min-height: 245px;
+  padding: 34px;
+
+  display: flex;
+  gap: 25px;
+
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  box-shadow: var(--shadow);
 }
 
-.pm-number {
-  width: 44px;
-  height: 44px;
+.pm-option-owner {
+  background: var(--cream);
+}
+
+.pm-option-icon {
+  flex: 0 0 auto;
+
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  background: var(--green);
-  color: white;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 900;
-  margin-bottom: 25px;
+
+  background: var(--green);
+  color: var(--white);
+
+  font-size: 25px;
 }
 
-.pm-step h3 {
+.pm-option-label {
+  color: var(--gold);
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.pm-option h2 {
+  margin: 7px 0 8px;
+
   color: var(--green);
-  font-size: 21px;
-  margin-bottom: 8px;
+
+  font-size: 27px;
+  line-height: 1.15;
 }
 
-.pm-step p {
+.pm-option p {
+  margin: 0 0 18px;
+
   color: var(--muted);
+
   font-size: 14px;
 }
 
-/* =========================================================
-   STATUS AREA
-   ========================================================= */
+.pm-option a {
+  color: var(--green);
 
-#status {
-  background: var(--green);
-  color: white;
+  font-size: 13px;
+  font-weight: 800;
 }
 
-#status .pm-section-label {
+.pm-option a:hover {
+  color: var(--gold);
+}
+
+
+/* =========================
+   SECTIONS
+========================= */
+
+.pm-section {
+  max-width: 1000px;
+  margin: auto;
+  padding: 120px 28px 100px;
+}
+
+.pm-section-heading {
+  max-width: 700px;
+  margin: 0 auto 45px;
+
+  text-align: center;
+}
+
+.pm-section-heading h2 {
+  margin: 12px 0;
+
+  color: var(--green);
+
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+}
+
+.pm-section-heading p {
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 16px;
+}
+
+
+/* =========================
+   FORMS
+========================= */
+
+.pm-form-card {
+  padding: 40px;
+
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  box-shadow: var(--shadow);
+}
+
+.pm-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.pm-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.pm-field-full {
+  grid-column: 1 / -1;
+}
+
+.pm-field label {
+  margin-bottom: 8px;
+
+  color: var(--green);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pm-field input,
+.pm-field select,
+.pm-field textarea,
+#requestStatusId input {
+  width: 100%;
+
+  padding: 14px 15px;
+
+  background: #fbfcfb;
+
+  border: 1px solid var(--border);
+  border-radius: 5px;
+
+  color: var(--black);
+
+  outline: none;
+
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.pm-field textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.pm-field input:focus,
+.pm-field select:focus,
+.pm-field textarea:focus,
+#requestStatusId input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(18, 60, 53, 0.08);
+}
+
+.pm-form-submit {
+  width: 100%;
+  margin-top: 25px;
+  padding: 16px 20px;
+
+  border: 0;
+  border-radius: 5px;
+
+  background: var(--green);
+  color: var(--white);
+
+  cursor: pointer;
+
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+}
+
+.pm-form-submit:hover {
+  background: var(--green-light);
+}
+
+#requestMsg,
+#propertyMsg,
+#statusResult {
+  margin-top: 18px;
+  font-size: 14px;
+}
+
+
+/* =========================
+   HOW IT WORKS
+========================= */
+
+.pm-how {
+  padding: 100px 28px;
+
+  background: var(--cream);
+}
+
+.pm-steps {
+  max-width: 1050px;
+  margin: 50px auto 0;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.pm-step {
+  padding: 32px;
+
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.pm-step > span {
+  display: block;
+
+  color: var(--gold);
+
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.pm-step h3 {
+  margin: 25px 0 10px;
+
+  color: var(--green);
+
+  font-size: 21px;
+}
+
+.pm-step p {
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 14px;
+}
+
+
+/* =========================
+   OWNER SECTION
+========================= */
+
+.pm-owner {
+  padding: 110px 28px;
+
+  background: var(--green-dark);
+}
+
+.pm-owner-inner {
+  max-width: 1100px;
+  margin: auto;
+
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 70px;
+
+  align-items: center;
+}
+
+.pm-owner-copy h2 {
+  margin: 18px 0;
+
+  color: var(--white);
+
+  font-size: clamp(34px, 4vw, 52px);
+  line-height: 1.08;
+  letter-spacing: -1.5px;
+}
+
+.pm-owner-copy h2 span {
   color: var(--gold-light);
 }
 
-#status h3 {
-  color: white;
+.pm-owner-copy p {
+  max-width: 470px;
+
+  color: rgba(255,255,255,0.7);
+
+  font-size: 16px;
 }
 
-#status p {
-  color: rgba(255,255,255,.7);
+.pm-owner-form {
+  background: var(--white);
 }
 
-#status #requestStatusId {
-  background: rgba(255,255,255,.1);
-  border-color: rgba(255,255,255,.25);
-  color: white;
-}
-
-#status button {
-  transition: .2s;
-}
-
-#status button:hover {
-  background: var(--gold) !important;
-}
-
-/* =========================================================
-   FINAL CTA
-   ========================================================= */
-
-.pm-final {
-  background:
-    linear-gradient(120deg,#b58a50,#c6a06a);
-  color: white;
-  padding: 95px 6%;
-}
-
-.pm-final-inner {
-  max-width: 1200px;
-  margin: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 40px;
-}
-
-.pm-final h2 {
+.pm-owner-form h3 {
   margin: 0;
-  font-size: clamp(42px,6vw,70px);
-  line-height: .95;
-  letter-spacing: -3px;
+
+  color: var(--green);
+
+  font-size: 25px;
 }
 
-.pm-final button {
-  border: 0;
-  background: var(--green);
-  color: white;
-  padding: 17px 28px;
-  border-radius: 4px;
-  font-weight: 900;
-  cursor: pointer;
-  white-space: nowrap;
+.pm-form-intro {
+  margin: 5px 0 28px;
+
+  color: var(--muted);
+
+  font-size: 14px;
 }
 
-/* =========================================================
-   FOOTER
-   ========================================================= */
 
-.pm-footer {
-  padding: 38px 6%;
-  background: #061e1b;
-  color: rgba(255,255,255,.55);
+/* =========================
+   STATUS
+========================= */
+
+.pm-status {
+  padding: 100px 28px;
+
+  background: var(--cream);
+}
+
+.pm-status-card {
+  max-width: 750px;
+  margin: auto;
+  padding: 55px 45px;
+
   text-align: center;
-  font-size: 13px;
+
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  box-shadow: var(--shadow);
 }
 
-.pm-footer strong {
-  color: white;
+.pm-status-card h2 {
+  margin: 12px 0 8px;
+
+  color: var(--green);
+
+  font-size: 34px;
+  line-height: 1.15;
 }
 
-/* =========================================================
+.pm-status-card p {
+  margin: 0 auto 30px;
+
+  color: var(--muted);
+}
+
+#requestStatusId {
+  display: flex;
+  gap: 10px;
+}
+
+#requestStatusId input {
+  flex: 1;
+}
+
+#requestStatusId button {
+  padding: 0 24px;
+
+  border: 0;
+  border-radius: 5px;
+
+  background: var(--green);
+  color: var(--white);
+
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+#requestStatusId button:hover {
+  background: var(--green-light);
+}
+
+
+/* =========================
    MATCH CARDS
-   ========================================================= */
+========================= */
 
 .match-card {
-  background: white;
-  border: 1px solid var(--line);
+  margin-top: 20px;
+  padding: 24px;
+
+  background: var(--white);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 15px 40px rgba(20,40,35,.07);
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
 }
 
-.match-card:hover {
-  transform: translateY(-4px);
-  transition: .2s;
+.match-card h3 {
+  color: var(--green);
 }
 
 .match-card button {
-  background: var(--gold);
-  color: white;
+  padding: 12px 18px;
+
   border: 0;
-  padding: 13px 18px;
-  border-radius: 4px;
-  font-weight: 900;
+  border-radius: 5px;
+
+  background: var(--green);
+  color: var(--white);
+
   cursor: pointer;
 }
 
-/* =========================================================
-   MOBILE
-   ========================================================= */
 
-@media (max-width: 850px) {
+/* =========================
+   FOOTER
+========================= */
 
-  .pm-hero {
-    min-height: 610px;
-    padding: 70px 6%;
-  }
+.pm-footer {
+  padding: 35px 28px;
 
-  .pm-hero h1 {
-    font-size: 54px;
-    letter-spacing: -3px;
-  }
-
-  .pm-stats,
-  .pm-split,
-  .pm-steps {
-    grid-template-columns: 1fr;
-  }
-
-  .pm-stat {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .pm-stat:last-child {
-    border-bottom: 0;
-  }
-
-  .pm-final-inner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  background: #061f1b;
+  color: var(--white);
 }
 
-@media (max-width: 520px) {
+.pm-footer-inner {
+  max-width: 1100px;
+  margin: auto;
 
-  .pm-nav {
-    height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+}
+
+.pm-footer strong {
+  display: block;
+  font-size: 17px;
+}
+
+.pm-footer span {
+  display: block;
+
+  color: var(--gold);
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.pm-footer p {
+  margin: 0;
+
+  color: rgba(255,255,255,0.55);
+
+  font-size: 13px;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 800px) {
+
+  .pm-nav-inner {
+    min-height: 70px;
     padding: 0 18px;
   }
 
-  .pm-logo {
-    font-size: 18px;
+  .pm-menu {
+    gap: 8px;
   }
 
-  .pm-nav-btn {
+  .pm-menu > a:not(.pm-submit-nav) {
+    display: none;
+  }
+
+  .pm-submit-nav {
     padding: 10px 14px;
-    font-size: 12px;
+    font-size: 11px;
+  }
+
+  .pm-hero {
+    min-height: 560px;
+  }
+
+  .pm-hero-content {
+    max-width: calc(100% - 36px);
+    padding: 70px 0 120px;
   }
 
   .pm-hero h1 {
-    font-size: 45px;
+    font-size: 48px;
     letter-spacing: -2px;
   }
 
@@ -587,30 +806,102 @@ body {
     font-size: 16px;
   }
 
-  .pm-actions {
-    flex-direction: column;
+  .pm-options {
+    grid-template-columns: 1fr;
+    padding: 0 18px;
   }
 
-  .pm-actions button {
-    width: 100%;
+  .pm-option {
+    min-height: auto;
   }
 
-  .pm-section,
-  .pm-how {
-    padding: 70px 6%;
+  .pm-section {
+    padding: 90px 18px 80px;
   }
 
-  .pm-search-box,
-  .pm-card {
+  .pm-form-card {
     padding: 25px 20px;
   }
 
-  .pm-section h2,
-  .pm-how > h2 {
+  .pm-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pm-field-full {
+    grid-column: auto;
+  }
+
+  .pm-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .pm-owner {
+    padding: 80px 18px;
+  }
+
+  .pm-owner-inner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .pm-status {
+    padding: 80px 18px;
+  }
+
+  .pm-status-card {
+    padding: 40px 22px;
+  }
+
+  #requestStatusId {
+    flex-direction: column;
+  }
+
+  #requestStatusId button {
+    min-height: 50px;
+  }
+
+  .pm-footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+
+@media (max-width: 450px) {
+
+  .pm-logo strong {
+    font-size: 16px;
+  }
+
+  .pm-logo small {
+    font-size: 8px;
+  }
+
+  .pm-logo-mark {
+    width: 40px;
+    height: 40px;
+  }
+
+  .pm-hero h1 {
     font-size: 42px;
   }
 
-  .pm-final h2 {
-    font-size: 45px;
+  .pm-hero-buttons {
+    flex-direction: column;
+  }
+
+  .pm-btn {
+    width: 100%;
+  }
+
+  .pm-option {
+    padding: 25px;
+    gap: 16px;
+  }
+
+  .pm-option-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
   }
 }
