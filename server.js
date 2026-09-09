@@ -1,907 +1,388 @@
 const express = require("express");
 const cors = require("cors");
-const { Pool } = require("pg");
-const crypto = require("crypto");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_KEY = process.env.ADMIN_KEY || "change-this-admin-key";
 
+// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-if (!process.env.DATABASE_URL) {
-  console.error("DATABASE_URL is missing.");
-}
+// Temporary in-memory data
+// Later we can connect this to a real database.
+const propertyRequests = [];
+const properties = [];
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL
-    ? { rejectUnauthorized: false }
-    : false
+/* =========================
+   HOME / HEALTH CHECK
+========================= */
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "PropertyMatch Abu Dhabi API is running",
+  });
 });
 
-async function initDatabase() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS requests (
-      id SERIAL PRIMARY KEY,
-      request_id TEXT UNIQUE NOT NULL,
-      name TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      email TEXT,
-      purpose TEXT NOT NULL,
-      property_type TEXT NOT NULL,
-      areas TEXT,
-      budget_max REAL,
-      bedrooms INTEGER,
-      size_min REAL,
-      requirements TEXT,
-      status TEXT DEFAULT 'received',
-      created_at TEXT NOT NULL
-    );
+/* =========================
+   CUSTOMER PROPERTY REQUEST
+========================= */
 
-    CREATE TABLE IF NOT EXISTS properties (
-      id SERIAL PRIMARY KEY,
-      owner_name TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      email TEXT,
-      property_type TEXT NOT NULL,
-      area TEXT,
-      price REAL,
-      bedrooms INTEGER,
-      size REAL,
-      features TEXT,
-      description TEXT,
-      verified INTEGER DEFAULT 0,
-      created_at TEXT NOT NULL
-    );
+app.post("/api/requests", (req, res) => {
+  try {
+    const {
+      name,
+      phone,
+      email,
+      propertyType,
+      areas,
+      budgetMin,
+      budgetMax,
+      bedrooms,
+      requirements,
+    } = req.body;
 
-    CREATE TABLE IF NOT EXISTS property_interests (
-      id SERIAL PRIMARY KEY,
-      request_id TEXT NOT NULL,
-      property_id INTEGER NOT NULL,
-      status TEXT DEFAULT 'new',
-      created_at TEXT NOT NULL,
-      UNIQUE(request_id, property_id)
-    );
-  `);
+    if (!name || !phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Customer name and phone are required.",
+      });
+    }
 
-  console.log("PostgreSQL database ready.");
-}
+    const request = {
+      id: Date.now(),
+      name,
+      phone,
+      email: email || "",
+      propertyType: propertyType || "",
+      areas: areas || "",
+      budgetMin: budgetMin || "",
+      budgetMax: budgetMax || "",
+      bedrooms: bedrooms || "",
+      requirements: requirements || "",
+      createdAt: new Date().toISOString(),
+    };
 
-function clean(value) {
-  if (value === undefined || value === null) return "";
-  return String(value).trim();
-}
+    propertyRequests.push(request);
 
-function numberOrNull(value) {
-  if (value === "" || value === undefined || value === null) {
-    return null;
-  }
+    // Find matching properties
+    const matches = properties.filter((property) => {
+      let match = true;
 
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
-}
-
-function makeRequestId() {
-  const date = new Date()
-    .toISOString()
-    .slice(0, 10)
-    .replace(/-/g, "");
-
-  const random = crypto
-    .randomBytes(3)
-    .toString("hex")
-    .toUpperCase();
-
-  return `PM-${date}-${random}`;
-}
-
-async function findMatches(request) {
-  const result = await pool.query(`
-    SELECT *
-    FROM properties
-    WHERE verified = 1
-    ORDER BY created_at DESC
-  `);
-
-  const properties = result.rows;
-
-  const requestedAreas = clean(request.areas)
-    .toLowerCase()
-    .split(",")
-    .map(x => x.trim())
-    .filter(Boolean);
-
-  return properties
-    .map(property => {
-      let score = 0;
-      const reasons = [];
-
+      // Property type
       if (
-        clean(request.property_type).toLowerCase() ===
-        clean(property.property_type).toLowerCase()
+        propertyType &&
+        property.propertyType &&
+        property.propertyType.toLowerCase() !==
+          propertyType.toLowerCase()
       ) {
-        score += 30;
-        reasons.push("Property type matches");
+        match = false;
       }
 
-      const propertyArea = clean(property.area).toLowerCase();
+      // Area
+      if (areas && property.area) {
+        const requestedAreas = areas
+          .toLowerCase()
+          .split(",")
+          .map((x) => x.trim());
 
-      if (
-        requestedAreas.length === 0 ||
-        requestedAreas.some(area =>
+        const propertyArea = property.area.toLowerCase();
+
+        const areaMatch = requestedAreas.some((area) =>
           propertyArea.includes(area)
-        )
-      ) {
-        score += 25;
-        reasons.push("Area matches");
+        );
+
+        if (!areaMatch) {
+          match = false;
+        }
       }
 
-      if (
-        request.budget_max === null ||
-        request.budget_max === undefined ||
-        property.price === null ||
-        property.price <= request.budget_max
-      ) {
-        score += 20;
-        reasons.push("Budget matches");
+      // Minimum budget
+      if (budgetMin && property.price) {
+        if (Number(property.price) < Number(budgetMin)) {
+          match = false;
+        }
       }
 
-      if (
-        request.bedrooms === null ||
-        request.bedrooms === undefined ||
-        property.bedrooms === null ||
-        property.bedrooms >= request.bedrooms
-      ) {
-        score += 15;
-        reasons.push("Bedrooms match");
+      // Maximum budget
+      if (budgetMax && property.price) {
+        if (Number(property.price) > Number(budgetMax)) {
+          match = false;
+        }
       }
 
-      if (
-        request.size_min === null ||
-        request.size_min === undefined ||
-        property.size === null ||
-        property.size >= request.size_min
-      ) {
-        score += 10;
-        reasons.push("Size matches");
+      // Bedrooms
+      if (bedrooms && property.bedrooms) {
+        if (Number(property.bedrooms) < Number(bedrooms)) {
+          match = false;
+        }
       }
 
-      return {
-        ...property,
-        score,
-        reasons
-      };
-    })
-    .filter(property => property.score >= 50)
-    .sort((a, b) => b.score - a.score);
-}
-
-function publicProperty(property) {
-  return {
-    id: property.id,
-    property_type: property.property_type,
-    area: property.area,
-    price: property.price,
-    bedrooms: property.bedrooms,
-    size: property.size,
-    features: property.features,
-    description: property.description,
-    score: property.score,
-    reasons: property.reasons
-  };
-}
-
-/* Health */
-
-app.get("/api/health", async (req, res) => {
-  try {
-    await pool.query("SELECT 1");
-
-    res.json({
-      success: true,
-      service: "PropertyMatch Abu Dhabi",
-      status: "online",
-      database: "connected"
+      return match;
     });
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      service: "PropertyMatch Abu Dhabi",
-      status: "online",
-      database: "error"
-    });
-  }
-});
-
-/* Create property request */
-
-app.post("/api/requests", async (req, res) => {
-  try {
-    const body = req.body;
-
-    if (!clean(body.name) || !clean(body.phone)) {
-      return res.status(400).json({
-        success: false,
-        error: "Name and phone are required."
-      });
-    }
-
-    const requestId = makeRequestId();
-    const createdAt = new Date().toISOString();
-
-    await pool.query(`
-      INSERT INTO requests (
-        request_id,
-        name,
-        phone,
-        email,
-        purpose,
-        property_type,
-        areas,
-        budget_max,
-        bedrooms,
-        size_min,
-        requirements,
-        status,
-        created_at
-      )
-      VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13
-      )
-    `, [
-      requestId,
-      clean(body.name),
-      clean(body.phone),
-      clean(body.email),
-      clean(body.purpose),
-      clean(body.property_type),
-      clean(body.areas),
-      numberOrNull(body.budget_max),
-      numberOrNull(body.bedrooms),
-      numberOrNull(body.size_min),
-      clean(body.requirements),
-      "received",
-      createdAt
-    ]);
 
     res.status(201).json({
       success: true,
-      message: "Request received successfully.",
-      request_id: requestId,
-      status: "received"
+      message: "Property request submitted successfully.",
+      request,
+      matches,
+      matchCount: matches.length,
     });
-
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
       success: false,
-      error: "Could not create request."
+      message: "Something went wrong while submitting the request.",
     });
   }
 });
 
-/* Submit property */
+/* =========================
+   SUBMIT PROPERTY
+========================= */
 
-app.post("/api/properties", async (req, res) => {
+app.post("/api/properties", (req, res) => {
   try {
-    const body = req.body;
+    const {
+      ownerName,
+      ownerPhone,
+      ownerEmail,
+      propertyType,
+      area,
+      price,
+      bedrooms,
+      bathrooms,
+      propertySize,
+      description,
+      image,
+    } = req.body;
 
-    if (!clean(body.owner_name) || !clean(body.phone)) {
+    if (!ownerName || !ownerPhone) {
       return res.status(400).json({
         success: false,
-        error: "Owner name and phone are required."
+        message: "Owner name and phone are required.",
       });
     }
 
-    const result = await pool.query(`
-      INSERT INTO properties (
-        owner_name,
-        phone,
-        email,
-        property_type,
-        area,
-        price,
-        bedrooms,
-        size,
-        features,
-        description,
-        verified,
-        created_at
-      )
-      VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
-      )
-      RETURNING id
-    `, [
-      clean(body.owner_name),
-      clean(body.phone),
-      clean(body.email),
-      clean(body.property_type),
-      clean(body.area),
-      numberOrNull(body.price),
-      numberOrNull(body.bedrooms),
-      numberOrNull(body.size),
-      clean(body.features),
-      clean(body.description),
-      0,
-      new Date().toISOString()
-    ]);
+    const property = {
+      id: Date.now(),
+      ownerName,
+      ownerPhone,
+      ownerEmail: ownerEmail || "",
+      propertyType: propertyType || "",
+      area: area || "",
+      price: price || "",
+      bedrooms: bedrooms || "",
+      bathrooms: bathrooms || "",
+      propertySize: propertySize || "",
+      description: description || "",
+      image: image || "",
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    };
+
+    properties.push(property);
 
     res.status(201).json({
       success: true,
-      message: "Property received successfully.",
-      property_id: result.rows[0].id,
-      status: "pending verification"
+      message: "Property submitted successfully and is waiting for approval.",
+      property,
     });
-
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
       success: false,
-      error: "Could not submit property."
+      message: "Something went wrong while submitting the property.",
     });
   }
 });
 
-/* Check request status */
+/* =========================
+   GET ALL PROPERTIES
+========================= */
 
-app.get("/api/requests/:requestId", async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT *
-      FROM requests
-      WHERE request_id = $1
-    `, [req.params.requestId]);
-
-    const request = result.rows[0];
-
-    if (!request) {
-      return res.status(404).json({
-        success: false,
-        error: "Request not found."
-      });
-    }
-
-    const matches = await findMatches(request);
-
-    res.json({
-      success: true,
-      request: {
-        request_id: request.request_id,
-        name: request.name,
-        purpose: request.purpose,
-        property_type: request.property_type,
-        status: request.status,
-        created_at: request.created_at
-      },
-      matches: matches.map(publicProperty)
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      error: "Could not retrieve request."
-    });
-  }
+app.get("/api/properties", (req, res) => {
+  res.json({
+    success: true,
+    properties,
+  });
 });
 
-/* Public matches */
+/* =========================
+   GET APPROVED PROPERTIES
+========================= */
 
-app.get("/api/matches/:requestId", async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT *
-      FROM requests
-      WHERE request_id = $1
-    `, [req.params.requestId]);
+app.get("/api/properties/approved", (req, res) => {
+  const approvedProperties = properties.filter(
+    (property) => property.status === "approved"
+  );
 
-    const request = result.rows[0];
-
-    if (!request) {
-      return res.status(404).json({
-        success: false,
-        error: "Request not found."
-      });
-    }
-
-    const matches = await findMatches(request);
-
-    res.json({
-      success: true,
-      request_id: request.request_id,
-      matches: matches.map(publicProperty)
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      error: "Could not find matches."
-    });
-  }
+  res.json({
+    success: true,
+    properties: approvedProperties,
+  });
 });
 
-/* Customer requests a property */
+/* =========================
+   GET ALL CUSTOMER REQUESTS
+========================= */
 
-app.post("/api/property-interest", async (req, res) => {
-  try {
-    const requestId = clean(req.body.request_id);
-    const propertyId = numberOrNull(req.body.property_id);
-
-    if (!requestId || !propertyId) {
-      return res.status(400).json({
-        success: false,
-        error: "Request ID and property ID are required."
-      });
-    }
-
-    const requestResult = await pool.query(`
-      SELECT request_id
-      FROM requests
-      WHERE request_id = $1
-    `, [requestId]);
-
-    if (!requestResult.rowCount) {
-      return res.status(404).json({
-        success: false,
-        error: "Request not found."
-      });
-    }
-
-    const propertyResult = await pool.query(`
-      SELECT id
-      FROM properties
-      WHERE id = $1
-      AND verified = 1
-    `, [propertyId]);
-
-    if (!propertyResult.rowCount) {
-      return res.status(404).json({
-        success: false,
-        error: "Property not found or not verified."
-      });
-    }
-
-    const existing = await pool.query(`
-      SELECT id, status
-      FROM property_interests
-      WHERE request_id = $1
-      AND property_id = $2
-    `, [requestId, propertyId]);
-
-    if (existing.rowCount) {
-      return res.json({
-        success: true,
-        already_requested: true,
-        message: "You already requested this property.",
-        interest_id: existing.rows[0].id,
-        status: existing.rows[0].status
-      });
-    }
-
-    const result = await pool.query(`
-      INSERT INTO property_interests (
-        request_id,
-        property_id,
-        status,
-        created_at
-      )
-      VALUES ($1,$2,$3,$4)
-      RETURNING id, status
-    `, [
-      requestId,
-      propertyId,
-      "new",
-      new Date().toISOString()
-    ]);
-
-    await pool.query(`
-      UPDATE requests
-      SET status = 'match_found'
-      WHERE request_id = $1
-      AND status IN ('received','searching')
-    `, [requestId]);
-
-    res.status(201).json({
-      success: true,
-      message: "Property request received. Our team will contact you.",
-      interest_id: result.rows[0].id,
-      status: result.rows[0].status
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      error: "Could not request this property."
-    });
-  }
+app.get("/api/requests", (req, res) => {
+  res.json({
+    success: true,
+    requests: propertyRequests,
+  });
 });
 
-/* Admin authentication */
+/* =========================
+   ADMIN DASHBOARD DATA
+========================= */
 
-function adminOnly(req, res, next) {
-  const key = req.headers["x-admin-key"];
+app.get("/api/admin/dashboard", (req, res) => {
+  const pendingProperties = properties.filter(
+    (property) => property.status === "pending"
+  );
 
-  if (!key || key !== ADMIN_KEY) {
-    return res.status(401).json({
-      success: false,
-      error: "Unauthorized."
-    });
-  }
+  const approvedProperties = properties.filter(
+    (property) => property.status === "approved"
+  );
 
-  next();
-}
+  const rejectedProperties = properties.filter(
+    (property) => property.status === "rejected"
+  );
 
-/* Admin summary */
+  res.json({
+    success: true,
 
-app.get("/api/admin/summary", adminOnly, async (req, res) => {
-  try {
-    const requests = await pool.query(
-      "SELECT COUNT(*)::int AS count FROM requests"
-    );
+    statistics: {
+      totalProperties: properties.length,
+      pendingProperties: pendingProperties.length,
+      approvedProperties: approvedProperties.length,
+      rejectedProperties: rejectedProperties.length,
+      totalRequests: propertyRequests.length,
+    },
 
-    const properties = await pool.query(
-      "SELECT COUNT(*)::int AS count FROM properties"
-    );
-
-    const verified = await pool.query(
-      "SELECT COUNT(*)::int AS count FROM properties WHERE verified = 1"
-    );
-
-    res.json({
-      success: true,
-      requests: requests.rows[0].count,
-      properties: properties.rows[0].count,
-      verified_properties: verified.rows[0].count
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      error: "Could not load summary."
-    });
-  }
+    properties,
+    requests: propertyRequests,
+  });
 });
 
-/* Admin requests */
+/* =========================
+   APPROVE PROPERTY
+========================= */
 
-app.get("/api/admin/requests", adminOnly, async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT *
-      FROM requests
-      ORDER BY id DESC
-    `);
+app.put("/api/properties/:id/approve", (req, res) => {
+  const id = Number(req.params.id);
 
-    res.json({
-      success: true,
-      requests: result.rows
-    });
+  const property = properties.find(
+    (item) => item.id === id
+  );
 
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
+  if (!property) {
+    return res.status(404).json({
       success: false,
-      error: "Could not load requests."
+      message: "Property not found.",
     });
   }
+
+  property.status = "approved";
+  property.updatedAt = new Date().toISOString();
+
+  res.json({
+    success: true,
+    message: "Property approved successfully.",
+    property,
+  });
 });
 
-/* Admin properties */
+/* =========================
+   REJECT PROPERTY
+========================= */
 
-app.get("/api/admin/properties", adminOnly, async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT *
-      FROM properties
-      ORDER BY id DESC
-    `);
+app.put("/api/properties/:id/reject", (req, res) => {
+  const id = Number(req.params.id);
 
-    res.json({
-      success: true,
-      properties: result.rows
-    });
+  const property = properties.find(
+    (item) => item.id === id
+  );
 
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
+  if (!property) {
+    return res.status(404).json({
       success: false,
-      error: "Could not load properties."
+      message: "Property not found.",
     });
   }
+
+  property.status = "rejected";
+  property.updatedAt = new Date().toISOString();
+
+  res.json({
+    success: true,
+    message: "Property rejected.",
+    property,
+  });
 });
 
-/* Admin full matches */
+/* =========================
+   DELETE PROPERTY
+========================= */
 
-app.get("/api/admin/matches/:requestId", adminOnly, async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT *
-      FROM requests
-      WHERE request_id = $1
-    `, [req.params.requestId]);
+app.delete("/api/properties/:id", (req, res) => {
+  const id = Number(req.params.id);
 
-    const request = result.rows[0];
+  const index = properties.findIndex(
+    (property) => property.id === id
+  );
 
-    if (!request) {
-      return res.status(404).json({
-        success: false,
-        error: "Request not found."
-      });
-    }
-
-    const matches = await findMatches(request);
-
-    res.json({
-      success: true,
-      request: {
-        request_id: request.request_id,
-        name: request.name,
-        phone: request.phone,
-        email: request.email,
-        purpose: request.purpose,
-        property_type: request.property_type,
-        areas: request.areas,
-        budget_max: request.budget_max,
-        bedrooms: request.bedrooms,
-        size_min: request.size_min,
-        requirements: request.requirements,
-        status: request.status,
-        created_at: request.created_at
-      },
-      matches
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
+  if (index === -1) {
+    return res.status(404).json({
       success: false,
-      error: "Could not load matches."
+      message: "Property not found.",
     });
   }
+
+  const deletedProperty = properties.splice(index, 1);
+
+  res.json({
+    success: true,
+    message: "Property deleted successfully.",
+    property: deletedProperty[0],
+  });
 });
 
-/* Admin property requests */
+/* =========================
+   DELETE CUSTOMER REQUEST
+========================= */
 
-app.get("/api/admin/interests", adminOnly, async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT
-        i.id,
-        i.request_id,
-        i.property_id,
-        i.status,
-        i.created_at,
+app.delete("/api/requests/:id", (req, res) => {
+  const id = Number(req.params.id);
 
-        r.name AS customer_name,
-        r.phone AS customer_phone,
-        r.email AS customer_email,
+  const index = propertyRequests.findIndex(
+    (request) => request.id === id
+  );
 
-        p.owner_name,
-        p.phone AS owner_phone,
-        p.email AS owner_email,
-        p.property_type,
-        p.area,
-        p.price,
-        p.bedrooms,
-        p.size,
-        p.features,
-        p.description,
-        p.verified
-
-      FROM property_interests i
-
-      LEFT JOIN requests r
-        ON r.request_id = i.request_id
-
-      LEFT JOIN properties p
-        ON p.id = i.property_id
-
-      ORDER BY i.id DESC
-    `);
-
-    res.json({
-      success: true,
-      interests: result.rows
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
+  if (index === -1) {
+    return res.status(404).json({
       success: false,
-      error: "Could not load property requests."
+      message: "Request not found.",
     });
   }
+
+  const deletedRequest = propertyRequests.splice(index, 1);
+
+  res.json({
+    success: true,
+    message: "Request deleted successfully.",
+    request: deletedRequest[0],
+  });
 });
 
-/* Update property request status */
+/* =========================
+   START SERVER
+========================= */
 
-app.post(
-  "/api/admin/interests/:interestId/status",
-  adminOnly,
-  async (req, res) => {
-    try {
-      const allowed = [
-        "new",
-        "contacted",
-        "closed"
-      ];
-
-      const status = clean(req.body.status);
-
-      if (!allowed.includes(status)) {
-        return res.status(400).json({
-          success: false,
-          error: "Invalid interest status."
-        });
-      }
-
-      const result = await pool.query(`
-        UPDATE property_interests
-        SET status = $1
-        WHERE id = $2
-        RETURNING id, status
-      `, [
-        status,
-        req.params.interestId
-      ]);
-
-      if (!result.rowCount) {
-        return res.status(404).json({
-          success: false,
-          error: "Property request not found."
-        });
-      }
-
-      res.json({
-        success: true,
-        interest_id: result.rows[0].id,
-        status: result.rows[0].status
-      });
-
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        success: false,
-        error: "Could not update property request."
-      });
-    }
-  }
-);
-
-/* Update request status */
-
-app.post(
-  "/api/admin/requests/:requestId/status",
-  adminOnly,
-  async (req, res) => {
-    try {
-      const allowed = [
-        "received",
-        "searching",
-        "match_found",
-        "contacted",
-        "deal_closed",
-        "closed"
-      ];
-
-      const status = clean(req.body.status);
-
-      if (!allowed.includes(status)) {
-        return res.status(400).json({
-          success: false,
-          error: "Invalid status."
-        });
-      }
-
-      const result = await pool.query(`
-        UPDATE requests
-        SET status = $1
-        WHERE request_id = $2
-        RETURNING request_id
-      `, [
-        status,
-        req.params.requestId
-      ]);
-
-      if (!result.rowCount) {
-        return res.status(404).json({
-          success: false,
-          error: "Request not found."
-        });
-      }
-
-      res.json({
-        success: true,
-        request_id: req.params.requestId,
-        status
-      });
-
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        success: false,
-        error: "Could not update request status."
-      });
-    }
-  }
-);
-
-/* Verify property */
-
-app.post(
-  "/api/admin/verify/:propertyId",
-  adminOnly,
-  async (req, res) => {
-    try {
-      const result = await pool.query(`
-        UPDATE properties
-        SET verified = 1
-        WHERE id = $1
-        RETURNING id
-      `, [req.params.propertyId]);
-
-      if (!result.rowCount) {
-        return res.status(404).json({
-          success: false,
-          error: "Property not found."
-        });
-      }
-
-      res.json({
-        success: true,
-        property_id: req.params.propertyId,
-        verified: true
-      });
-
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        success: false,
-        error: "Could not verify property."
-      });
-    }
-  }
-);
-
-/* Start server */
-
-async function startServer() {
-  try {
-    await initDatabase();
-
-    app.listen(PORT, () => {
-      console.log(
-        `PropertyMatch Abu Dhabi API running on port ${PORT}`
-      );
-    });
-
-  } catch (error) {
-    console.error("Database startup failed:", error);
-    process.exit(1);
-  }
-}
-
-startServer();
+app.listen(PORT, () => {
+  console.log(`PropertyMatch API running on port ${PORT}`);
+});
